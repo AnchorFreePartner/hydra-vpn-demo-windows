@@ -1,0 +1,14 @@
+﻿<Window
+    x:Class="Hydra.Sdk.Wpf.View.Shell"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:regions="http://prismlibrary.com/"
+    Title="Hydra Test App"
+    Width="800"
+    Height="600"
+    ResizeMode="CanMinimize"
+    mc:Ignorable="d">
+    <ItemsControl Name="MainRegion" regions:RegionManager.RegionName="MainRegion" />
+</Window>
