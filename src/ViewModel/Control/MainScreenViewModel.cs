@@ -2,8 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Security.Authentication.ExtendedProtection;
     using System.ServiceProcess;
+    using System.Text;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Input;
@@ -20,6 +24,8 @@
     using Hydra.Sdk.Vpn.Service.EventsHandling;
     using Hydra.Sdk.Wpf.Helper;
     using Logger;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Prism.Commands;
     using Prism.Mvvm;
     using Vpn.IoC;
@@ -117,12 +123,7 @@
         /// <summary>
         /// Disconnect button visibility flag.
         /// </summary>
-        private bool isDisconnectButtonVisible;
-
-        /// <summary>
-        /// Get VPN credentials command.
-        /// </summary>
-        private ICommand getVpnCredentialsCommand;
+        private bool isDisconnectButtonVisible;        
 
         /// <summary>
         /// Connect command.
@@ -165,14 +166,54 @@
         private string logContents;
 
         /// <summary>
-        /// Predefined carriers list.
-        /// </summary>
-        private IEnumerable<string> predefinedCarriers;
-
-        /// <summary>
         /// Countries list.
         /// </summary>
         private IEnumerable<string> countriesList;
+
+        /// <summary>
+        /// Use GitHub authorization flag.
+        /// </summary>
+        private bool useGithubAuthorization;
+
+        /// <summary>
+        /// Login command.
+        /// </summary>
+        private ICommand loginCommand;
+
+        /// <summary>
+        /// Logout command
+        /// </summary>
+        private ICommand logoutCommand;
+
+        /// <summary>
+        /// Login button visibility flag.
+        /// </summary>
+        private bool isLoginButtonVisible;
+
+        /// <summary>
+        /// Logout button visibility flag.
+        /// </summary>
+        private bool isLogoutButtonVisible;
+
+        /// <summary>
+        /// Logged in flag.
+        /// </summary>
+        private bool isLoggedIn;
+
+        /// <summary>
+        /// Requested country to connect.
+        /// </summary>
+        private string requestedCountry;
+
+        /// <summary>
+        /// GitHub login.
+        /// </summary>
+        private string gitHubLogin;
+
+        /// <summary>
+        /// GitHub password.
+        /// </summary>
+        private string gitHubPassword;
 
         /// <summary>
         /// <see cref="MainScreenViewModel"/> static constructor. Performs <see cref="MachineId"/> initialization.
@@ -197,6 +238,7 @@
             this.BackendUrl = "https://backend.northghost.com";
             this.IsConnectButtonVisible = false;
             this.SetStatusDisconnected();
+            this.SetStatusLoggedOut();
 
             // Init remaining traffic timer
             this.InitializeTimer();
@@ -214,7 +256,7 @@
         /// </summary>
         private void InitializeCarriers()
         {
-            this.PredefinedCarriers = new[] { "touchvpn", "cheetah", "vpnintouch", "kasperskylab" };
+            this.CarrierId = "afdemo";
         }
 
         /// <summary>
@@ -222,8 +264,7 @@
         /// </summary>
         private void InitializeCountriesList()
         {
-            this.CountriesList = new[] { "", "au", "br", "ca", "cz", "de", "dk", "es", "fr", "gb", "hk", "ie", "in", "it", "jp", "mx", "nl", "no", "ru",
-                "se", "sg", "tr", "ua", "us", "us-south", "za" };
+            this.CountriesList = new[] { "" };
         }
 
         /// <summary>
@@ -431,15 +472,6 @@
         }
 
         /// <summary>
-        /// Predefined carriers list.
-        /// </summary>
-        public IEnumerable<string> PredefinedCarriers
-        {
-            get => this.predefinedCarriers;
-            set => this.SetProperty(ref this.predefinedCarriers, value);
-        }
-
-        /// <summary>
         /// Countries list.
         /// </summary>
         public IEnumerable<string> CountriesList
@@ -449,9 +481,77 @@
         }
 
         /// <summary>
-        /// Get VPN credentials command.
+        /// Use GitHub authorization flag.
         /// </summary>
-        public ICommand GetVpnCredentialsCommand => this.getVpnCredentialsCommand ?? (this.getVpnCredentialsCommand = new DelegateCommand(this.GetVpnCredentials));
+        public bool UseGithubAuthorization
+        {
+            get => this.useGithubAuthorization;
+            set
+            {
+                this.SetProperty(ref this.useGithubAuthorization, value);
+                this.RaisePropertyChanged(nameof(IsGithubCredentialsEnabled));
+            }
+        }
+
+        /// <summary>
+        /// Login button visibility flag.
+        /// </summary>
+        public bool IsLoginButtonVisible
+        {
+            get => this.isLoginButtonVisible;
+            set => this.SetProperty(ref this.isLoginButtonVisible, value);
+        }
+
+        /// <summary>
+        /// Logout button visibility flag.
+        /// </summary>
+        public bool IsLogoutButtonVisible
+        {
+            get => this.isLogoutButtonVisible;
+            set => this.SetProperty(ref this.isLogoutButtonVisible, value);
+        }
+
+        /// <summary>
+        /// Logged in flag.
+        /// </summary>
+        public bool IsLoggedIn
+        {
+            get => this.isLoggedIn;
+            set
+            {
+                this.SetProperty(ref this.isLoggedIn, value);
+                this.RaisePropertyChanged(nameof(IsLoggedOut));
+                this.RaisePropertyChanged(nameof(IsGithubCredentialsEnabled));
+            }
+        }
+
+        /// <summary>
+        /// Logged out flag.
+        /// </summary>
+        public bool IsLoggedOut => !this.isLoggedIn;
+
+        /// <summary>
+        /// GitHub credentials enabled flag.
+        /// </summary>
+        public bool IsGithubCredentialsEnabled => UseGithubAuthorization && IsLoggedOut;
+
+        /// <summary>
+        /// GitHub login.
+        /// </summary>
+        public string GitHubLogin
+        {
+            get => this.gitHubLogin;
+            set => this.SetProperty(ref this.gitHubLogin, value);
+        }
+
+        /// <summary>
+        /// GitHub password.
+        /// </summary>
+        public string GitHubPassword
+        {
+            get => this.gitHubPassword;
+            set => this.SetProperty(ref this.gitHubPassword, value);
+        }
 
         /// <summary>
         /// Connect command.
@@ -468,6 +568,207 @@
         /// </summary>
         public ICommand ClearLogCommand => this.clearLogCommand ??
                                            (this.clearLogCommand = new DelegateCommand(this.ClearLog));
+
+        public ICommand LoginCommand => this.loginCommand ?? (this.loginCommand = new DelegateCommand(this.Login));
+
+        public ICommand LogoutCommand => this.logoutCommand ?? (this.logoutCommand = new DelegateCommand(this.Logout));
+
+        private async Task<string> GetGithubOAuthToken(string login, string password)
+        {
+            const string apiUrl = "https://api.github.com/authorizations";
+            const string clientId = "70ed6ffd4b08b3119208";
+            const string clientSecret = "fe02229ef77aa489f748f346e3e337490fd5b8ce";
+
+            var authString = Convert.ToBase64String(Encoding.Default.GetBytes($"{login}:{password}"));
+            var parameters = new
+            {
+                scopes = new string[]{ },
+                client_id = clientId,
+                client_secret = clientSecret
+            };
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", login);
+
+                using (var message = new HttpRequestMessage(HttpMethod.Post, apiUrl))
+                {
+                    message.Headers.Accept.ParseAdd("application/json");
+                    message.Headers.Authorization = AuthenticationHeaderValue.Parse($"Basic {authString}");                    
+
+                    var content = new StringContent(JsonConvert.SerializeObject(parameters), Encoding.UTF8, "application/json");
+                    message.Content = content;
+
+                    try
+                    {
+                        HydraLogger.Trace("Trying to get OAuth token from GitHub...");
+                        var response = await client.SendAsync(message);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            HydraLogger.Trace("Unable to get OAuth token from GitHub!");
+                            return string.Empty;
+                        }
+
+                        HydraLogger.Trace("Got valid response from GitHub");
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        var responseJson = JObject.Parse(responseString);
+
+                        return responseJson["token"].ToObject<string>();
+                    }
+                    catch 
+                    {
+                        return string.Empty;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Performs login to the backend server.
+        /// </summary>
+        private async void Login()
+        {
+            try
+            {
+                // Work with UI
+                this.IsErrorVisible = false;
+                this.IsConnectButtonVisible = false;
+                this.IsLoginButtonVisible = false;
+                this.vpnCredentials = null;
+
+                // Perform logout
+                await LogoutHelper.Logout();
+
+                // Get GitHub OAuth token if necessary
+                string oauthToken = string.Empty;
+                if (UseGithubAuthorization)
+                {
+                    oauthToken = await GetGithubOAuthToken(GitHubLogin, GitHubPassword);
+                    if (string.IsNullOrWhiteSpace(oauthToken))
+                    {
+                        MessageBox.Show("Could not perform GitHub authorization!", "Error", MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
+                // Bootstrap hydra backend with provided CarrierId and BackendUrl
+                var hydraBackendBootstrapper = new HydraBackendBootstrapper(new BackendServerConfiguration(this.CarrierId, this.BackendUrl));
+                hydraBackendBootstrapper.Bootstrap();
+
+                // Resolve backend service and perform login
+                var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
+                var loginResponse = await backendService.LoginAsync(
+                    new LoginParam
+                    (
+                        this.UseGithubAuthorization ? AuthenticationMethod.GitHub : AuthenticationMethod.Anonymous,
+                        this.DeviceId,
+                        Environment.MachineName,
+                        DeviceType.Desktop,
+                        this.UseGithubAuthorization ? oauthToken : string.Empty
+                    ));
+
+                // Check whether login was successful
+                if (!loginResponse.IsSuccess)
+                {
+                    this.IsLoginButtonVisible = true;
+                    this.ErrorText = loginResponse.Error ?? loginResponse.Result.ToString();
+                    this.IsErrorVisible = true;
+                    return;
+                }
+
+                // Remember access token for later usages
+                LogoutHelper.AccessToken = loginResponse.AccessToken;
+                this.AccessToken = loginResponse.AccessToken;
+
+                this.UpdateCountries();
+
+                // Work with UI
+                this.IsConnectButtonVisible = true;
+                this.SetStatusLoggedIn();
+
+                // Update remaining traffic
+                await this.UpdateRemainingTraffic();
+            }
+            catch (Exception e)
+            {
+                // Show error when exception occured
+                this.IsErrorVisible = true;
+                this.ErrorText = e.Message;
+                this.IsLoginButtonVisible = true;
+            }
+        }
+
+        /// <summary>
+        /// Update available countries list.
+        /// </summary>
+        private async void UpdateCountries()
+        {
+            // Get backend service reference
+            var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
+            var countriesResponse = await backendService.GetCountriesAsync(this.AccessToken);
+
+            // Check whether request was successful
+            if (!countriesResponse.IsSuccess)
+            {
+                this.IsLoginButtonVisible = true;
+                this.ErrorText = countriesResponse.Error ?? countriesResponse.Result.ToString();
+                this.IsErrorVisible = true;
+                return;
+            }
+
+            // Get countries from response
+            var countries = countriesResponse.VpnCountries.Select(x => x.Country).ToList();
+            countries.Insert(0, "");
+
+            // Remember countries
+            this.CountriesList = countries;
+        }
+
+        private async void Logout()
+        {
+            try
+            {
+                // Work with UI
+                this.IsErrorVisible = false;
+                this.IsConnectButtonVisible = false;
+                this.IsLogoutButtonVisible = false;
+                this.vpnCredentials = null;
+                this.requestedCountry = string.Empty;
+
+                // Resolve backend service and perform logout
+                var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
+                var logoutResponse = await backendService.LogoutAsync(new LogoutRequestParam(this.AccessToken));
+
+                // Check whether logout was successful
+                if (!logoutResponse.IsSuccess)
+                {
+                    this.IsLogoutButtonVisible = true;
+                    this.ErrorText = logoutResponse.Error ?? logoutResponse.Result.ToString();
+                    this.IsErrorVisible = true;
+                    return;
+                }
+
+                // Erase access token and other related properties
+                LogoutHelper.AccessToken = string.Empty;
+                this.AccessToken = string.Empty;
+                this.VpnIp = string.Empty;
+                this.Password = string.Empty;
+                this.RemainingTrafficResponse = String.Empty;
+
+                // Work with UI
+                this.IsConnectButtonVisible = true;
+                this.InitializeCountriesList();
+                this.SetStatusLoggedOut();
+            }
+            catch (Exception e)
+            {
+                // Show error when exception occured
+                this.IsErrorVisible = true;
+                this.ErrorText = e.Message;
+                this.isLogoutButtonVisible = true;
+            }
+        }
 
         /// <summary>
         /// Clears log contents.
@@ -524,6 +825,27 @@
             this.Status = "Connected";
             this.IsConnectButtonVisible = false;
             this.IsDisconnectButtonVisible = true;
+            this.IsLogoutButtonVisible = false;
+        }
+
+        /// <summary>
+        /// Performs actions related to setting backend status to "Logged out"
+        /// </summary>
+        private void SetStatusLoggedOut()
+        {
+            this.IsLoginButtonVisible = true;
+            this.IsLogoutButtonVisible = false;
+            this.IsLoggedIn = false;
+        }
+
+        /// <summary>
+        /// Performs actions related to setting backend status to "Logged in"
+        /// </summary>
+        private void SetStatusLoggedIn()
+        {
+            this.IsLoginButtonVisible = false;
+            this.IsLogoutButtonVisible = true;
+            this.IsLoggedIn = true;
         }
 
         /// <summary>
@@ -536,12 +858,13 @@
             this.BytesSent = "0";
             this.IsDisconnectButtonVisible = false;
             this.IsConnectButtonVisible = true;
+            this.IsLogoutButtonVisible = true;
         }
 
         /// <summary>
         /// Gets VPN credentinals.
         /// </summary>
-        private async void GetVpnCredentials()
+        private async Task GetVpnCredentials()
         {
             try
             {
@@ -550,38 +873,8 @@
                 this.IsConnectButtonVisible = false;
                 this.vpnCredentials = null;
 
-                // Perform logout
-                await LogoutHelper.Logout();
-
-                // Bootstrap hydra backend with provided CarrierId and BackendUrl
-                var hydraBackendBootstrapper = new HydraBackendBootstrapper(new BackendServerConfiguration(this.CarrierId, this.BackendUrl));
-                hydraBackendBootstrapper.Bootstrap();
-
-                // Resolve backend service and perform login
-                var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
-                var loginResponse = await backendService.LoginAsync(
-                    new LoginParam
-                        (
-                            AuthenticationMethod.Anonymous,
-                            this.DeviceId,
-                            Environment.MachineName,
-                            DeviceType.Desktop,
-                            string.Empty
-                        ));
-
-                // Check whether login was successful
-                if (!loginResponse.IsSuccess)
-                {
-                    this.ErrorText = loginResponse.Error ?? loginResponse.Result.ToString();
-                    this.IsErrorVisible = true;
-                    return;
-                }
-
-                // Remember access token for later usages
-                LogoutHelper.AccessToken = loginResponse.AccessToken;
-                this.AccessToken = loginResponse.AccessToken;
-
                 // Get credentials with AccessToken from Login response and provided Country
+                var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
                 var credentialsResponse = await backendService.GetCredentialsAsync(
                     new GetCredentialsParam
                         (
@@ -592,6 +885,7 @@
                 // Check whether request was successful
                 if (!credentialsResponse.IsSuccess)
                 {
+                    this.IsConnectButtonVisible = true;
                     this.ErrorText = credentialsResponse.Error ?? credentialsResponse.Result.ToString();
                     this.IsErrorVisible = true;
                     return;
@@ -610,6 +904,7 @@
             catch (Exception e)
             {
                 // Show error when exception occured
+                this.IsConnectButtonVisible = true;
                 this.IsErrorVisible = true;
                 this.ErrorText = e.Message;
             }
@@ -666,10 +961,16 @@
         /// </summary>
         private async void Connect()
         {
-            if (string.IsNullOrWhiteSpace(this.VpnIp))
+            // Get credentials if we need to
+            if (this.vpnCredentials == null || this.requestedCountry != this.Country)
             {
-                MessageBox.Show("Please enter the IP address of the VPN server to connect!", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                this.requestedCountry = this.Country;
+                await GetVpnCredentials();
+            }
+
+            if (this.vpnCredentials == null)
+            {
+                // Error occured while receiving the credentials
                 return;
             }
 
@@ -721,6 +1022,12 @@
         /// </summary>
         private async Task UpdateRemainingTraffic()
         {
+            // Check if access token is not empty
+            if (string.IsNullOrWhiteSpace(this.AccessToken))
+            {
+                return;
+            }
+
             // Resolve backend service
             var partnerBackendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
 

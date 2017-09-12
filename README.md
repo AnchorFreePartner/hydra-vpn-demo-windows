@@ -7,6 +7,8 @@ This repository contains demo application which demonstrates usage of Hydra VPN 
 This project is based on default Microsoft Visual Studio build process.
 Hydra VPN Windows SDK requires **.Net Framework 4.5**. Demo application requires **Microsoft Visual Studio 2017**.
 
+**Also you'll need to install TAP adapter** - run `tap\install-tap.bat` as Administrator.
+
 ## Adding SDK to project ##
 
 1. Put the SDK binaries in a suitable place
@@ -44,7 +46,7 @@ var vpnServerService = HydraIoc.Container.Resolve<IPartnerBackendService>();
 ```
 
 Login process requires OAuth Access Token and Authentication Method.
-This example uses Anonymous for demonstration.
+This example uses Anonymous and GitHub for demonstration.
 
 ```C#
 var loginParam = new LoginParam(
@@ -168,3 +170,37 @@ var remainingTrafficResponseResult = await partnerBackendService.GetRemainingTra
 * Traffic limit - limit for traffic usage in bytes
 * Traffic used - used traffic for subscriber
 * Traffic remaining - remaining traffic in bytes traffic
+
+## OAuth or Anonymous authorization ##
+
+This example application uses two types of client authorization: with OAuth token and
+Anonymous.
+
+Usage:
+
+```C#
+var loginResponse = await backendService.LoginAsync(
+	new LoginParam
+	(
+		AuthenticationMethod,
+		DeviceId,
+		MachineName,
+		DeviceType,
+		OAuthToken
+	));
+```
+
+- `AuthenticationMethod` - one of the valid authentication methods:
+  * GitHub, Facebook, Twitter, Firebase, Live, Google - for public authentication servers,
+  * OAuth - for custom authentication server,
+  * Anonymous - for anonymous authentication.
+- `DeviceId` - unique device id.
+- `MachineName` - name of your machine.
+- `DeviceType` - Desktop or Mobile.
+- `OAuthToken` - valid token from OAuth server or `null` for Anonymous.
+
+Log out user with:
+
+```C#
+var logoutResponse = await backendService.LogoutAsync(new LogoutRequestParam(this.AccessToken));
+```
