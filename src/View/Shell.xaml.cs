@@ -1,11 +1,10 @@
 ﻿namespace Hydra.Sdk.Wpf.View
-{
+{    
     using System.ComponentModel;
     using System.Windows;
 
     using Hydra.Sdk.Wpf.Helper;
-    using Hydra.Sdk.Wpf.ViewModel;
-
+    using Hydra.Sdk.Wpf.ViewModel;    
     using Microsoft.Practices.Unity;
 
     /// <summary>
@@ -35,7 +34,7 @@
         /// Actions to perform on main window closing.
         /// </summary>
         protected override async void OnClosing(CancelEventArgs e)
-        {
+        {            
             // Do not close window now
             e.Cancel = true;
 

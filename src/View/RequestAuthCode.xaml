@@ -1,0 +1,31 @@
+﻿<Window x:Class="Hydra.Sdk.Wpf.View.RequestAuthCode"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Hydra.Sdk.Wpf.View"
+        mc:Ignorable="d"
+        Title="Enter authentication code" Height="85" Width="200" ShowInTaskbar="False" ResizeMode="NoResize" 
+        WindowStyle="ToolWindow"
+        WindowStartupLocation="CenterScreen" Topmost="True">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="30" />
+        </Grid.RowDefinitions>
+        
+        <TextBox Grid.Row="0" Margin="5" Text="{Binding AuthCode, UpdateSourceTrigger=PropertyChanged}" />
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.5*" />
+                <ColumnDefinition Width="0.5*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="OK" Margin="5" IsDefault="True" 
+                    IsEnabled="{Binding IsOkButtonEnabled}"
+                    Click="OkButtonClicked"/>
+            <Button Grid.Column="1" Content="Cancel" Margin="5" IsCancel="True"
+                    Click="CancelButtonClicked"/>
+        </Grid>
+    </Grid>
+</Window>

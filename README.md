@@ -6,8 +6,7 @@ This repository contains demo application which demonstrates usage of Hydra VPN 
 
 This project is based on default Microsoft Visual Studio build process.
 Hydra VPN Windows SDK requires **.Net Framework 4.5**. Demo application requires **Microsoft Visual Studio 2017**.
-
-**Also you'll need to install TAP adapter** - run `tap\install-tap.bat` as Administrator.
+Demo application installs TAP driver and Windows service at startup, if something went wrong run `tap\install-tap.bat` as Administrator to install TAP driver. Use `service\install.bat` and `service\uninstall.bat` when you need to manage Windows service manually.
 
 ## Adding SDK to project ##
 

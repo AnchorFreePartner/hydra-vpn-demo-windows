@@ -1,9 +1,9 @@
 ﻿namespace Hydra.Sdk.Wpf
 {
+    using System;    
     using System.Windows;
-
-    using Hydra.Sdk.Wpf.View;
-
+    using Helper;
+    using Hydra.Sdk.Wpf.View;    
     using Microsoft.Practices.Unity;
     using Prism.Modularity;
     using Prism.Unity;
@@ -13,6 +13,46 @@
     /// </summary>
     public class Bootstrapper : UnityBootstrapper
     {
+        private void EnsureServiceInstalled()
+        {
+            if (!ServiceHelper.IsInstalled())
+            {
+                var installWindow = this.Container.Resolve<InstallingWindow>();
+                installWindow.InstallingWindowViewModel.Component = "hydra service";
+                installWindow.InstallingWindowViewModel.CurrentAction = async () =>
+                {
+                    var result = await ServiceHelper.InstallService();
+                    if (!result)
+                    {
+                        MessageBox.Show("Unable to install hydra service!", "Error", MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                        Environment.Exit(1);
+                    }
+                };
+                installWindow.ShowDialog();
+            }
+        }
+
+        private void EnsureDriverInstalled()
+        {
+            if (!DriverHelper.IsInstalled())
+            {
+                var installWindow = this.Container.Resolve<InstallingWindow>();
+                installWindow.InstallingWindowViewModel.Component = "tap driver";
+                installWindow.InstallingWindowViewModel.CurrentAction = async () =>
+                {
+                    var result = await DriverHelper.InstallDriver();
+                    if (!result)
+                    {
+                        MessageBox.Show("Unable to install tap driver!", "Error", MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                        Environment.Exit(1);
+                    }
+                };
+                installWindow.ShowDialog();                
+            }
+        }
+
         /// <summary>Creates the shell or main window of the application.</summary>
         /// <returns>The shell of the application.</returns>
         /// <remarks>
@@ -24,10 +64,7 @@
         /// </remarks>
         protected override DependencyObject CreateShell()
         {
-            var shell = this.Container.Resolve<Shell>();
-            Application.Current.MainWindow = shell;
-            Application.Current.MainWindow.Show();
-            return shell;
+            return this.Container.Resolve<Shell>();
         }
 
         /// <summary>
@@ -36,6 +73,9 @@
         protected override void InitializeShell()
         {
             base.InitializeShell();
+
+            EnsureDriverInstalled();
+            EnsureServiceInstalled();
 
             Application.Current.MainWindow = (Window)this.Shell;
             Application.Current.MainWindow.Show();

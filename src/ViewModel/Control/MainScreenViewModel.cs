@@ -1,13 +1,17 @@
-﻿namespace Hydra.Sdk.Wpf.ViewModel.Control
+﻿using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace Hydra.Sdk.Wpf.ViewModel.Control
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Security.Authentication.ExtendedProtection;
     using System.ServiceProcess;
-    using System.Text;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Input;
@@ -24,10 +28,11 @@
     using Hydra.Sdk.Vpn.Service.EventsHandling;
     using Hydra.Sdk.Wpf.Helper;
     using Logger;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Practices.ServiceLocation;
+    using Microsoft.Practices.Unity;
     using Prism.Commands;
     using Prism.Mvvm;
+    using View;
     using Vpn.IoC;
 
     /// <summary>
@@ -153,12 +158,12 @@
         /// <summary>
         /// Use service flag.
         /// </summary>
-        private bool useService;
+        private bool useService = true;
 
         /// <summary>
         /// Name of windows service to use to establish hydra connection.
         /// </summary>
-        private string serviceName;
+        private string serviceName = "hydrasvc";
 
         /// <summary>
         /// Hydra log contents.
@@ -569,20 +574,34 @@
         public ICommand ClearLogCommand => this.clearLogCommand ??
                                            (this.clearLogCommand = new DelegateCommand(this.ClearLog));
 
+        /// <summary>
+        /// Login command.
+        /// </summary>
         public ICommand LoginCommand => this.loginCommand ?? (this.loginCommand = new DelegateCommand(this.Login));
 
+        /// <summary>
+        /// Logout command.
+        /// </summary>
         public ICommand LogoutCommand => this.logoutCommand ?? (this.logoutCommand = new DelegateCommand(this.Logout));
 
-        private async Task<string> GetGithubOAuthToken(string login, string password)
+        /// <summary>
+        /// Performs login to GitHub.
+        /// </summary>
+        /// <param name="login">User login.</param>
+        /// <param name="pass">User password.</param>
+        /// <param name="authCode">Optional authentication code for two-factor authentication.</param>
+        /// <returns><see cref="HttpResponseMessage"/></returns>
+        private async Task<HttpResponseMessage> LoginGithub(string login, string pass, string authCode = null)
         {
             const string apiUrl = "https://api.github.com/authorizations";
             const string clientId = "70ed6ffd4b08b3119208";
             const string clientSecret = "fe02229ef77aa489f748f346e3e337490fd5b8ce";
+            const string githubOtpHeader = "X-GitHub-OTP";
 
-            var authString = Convert.ToBase64String(Encoding.Default.GetBytes($"{login}:{password}"));
+            var authString = Convert.ToBase64String(Encoding.Default.GetBytes($"{login}:{pass}"));
             var parameters = new
             {
-                scopes = new string[]{ },
+                scopes = new string[] { },
                 client_id = clientId,
                 client_secret = clientSecret
             };
@@ -594,32 +613,79 @@
                 using (var message = new HttpRequestMessage(HttpMethod.Post, apiUrl))
                 {
                     message.Headers.Accept.ParseAdd("application/json");
-                    message.Headers.Authorization = AuthenticationHeaderValue.Parse($"Basic {authString}");                    
+                    message.Headers.Authorization = AuthenticationHeaderValue.Parse($"Basic {authString}");
+
+                    // Two-factor authentication
+                    if (authCode != null)
+                    {
+                        message.Headers.Add(githubOtpHeader, authCode);
+                    }
 
                     var content = new StringContent(JsonConvert.SerializeObject(parameters), Encoding.UTF8, "application/json");
                     message.Content = content;
 
-                    try
+                    HydraLogger.Trace("Trying to get OAuth token from GitHub...");
+                    return await client.SendAsync(message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets GiHub OAuth token.
+        /// </summary>
+        /// <param name="login">User login.</param>
+        /// <param name="pass">User password.</param>
+        /// <returns>OAuth token or string.Empty in case of failure.</returns>
+        private async Task<string> GetGithubOAuthToken(string login, string pass)
+        {
+            const string githubOtpHeader = "X-GitHub-OTP";
+
+            try
+            {
+                var response = await this.LoginGithub(login, pass);
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == HttpStatusCode.Unauthorized
+                        && response.Headers.Contains(githubOtpHeader))
                     {
-                        HydraLogger.Trace("Trying to get OAuth token from GitHub...");
-                        var response = await client.SendAsync(message);
-                        if (!response.IsSuccessStatusCode)
+                        HydraLogger.Trace("Two-factor authentication enabled");
+
+                        var requestAuthCode = ServiceLocator.Current.GetInstance<RequestAuthCode>();
+
+                        requestAuthCode.ShowDialog();
+                        if (requestAuthCode.DialogResult != true)
                         {
-                            HydraLogger.Trace("Unable to get OAuth token from GitHub!");
+                            HydraLogger.Trace("Cancel authorization!");
                             return string.Empty;
                         }
 
-                        HydraLogger.Trace("Got valid response from GitHub");
-                        var responseString = await response.Content.ReadAsStringAsync();
-                        var responseJson = JObject.Parse(responseString);
+                        var authCode = requestAuthCode.RequestAuthCodeViewModel.AuthCode;
+                        HydraLogger.Trace("Sending authentication code...");
 
-                        return responseJson["token"].ToObject<string>();
+                        response = await this.LoginGithub(login, pass, authCode);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            HydraLogger.Trace("Two-factor authentication failed!");
+                            return string.Empty;
+                        }
                     }
-                    catch 
+                    else
                     {
+                        HydraLogger.Trace("Unable to get OAuth token from GitHub!");
                         return string.Empty;
                     }
                 }
+
+                HydraLogger.Trace("Got valid response from GitHub");
+                var responseString = await response.Content.ReadAsStringAsync();
+                var responseJson = JObject.Parse(responseString);
+
+                return responseJson["token"].ToObject<string>();
+            }
+            catch 
+            {
+                // Something went wrong
+                return string.Empty;
             }
         }
 
@@ -631,8 +697,7 @@
             try
             {
                 // Work with UI
-                this.IsErrorVisible = false;
-                this.IsConnectButtonVisible = false;
+                this.IsErrorVisible = false;                
                 this.IsLoginButtonVisible = false;
                 this.vpnCredentials = null;
 
@@ -648,6 +713,7 @@
                     {
                         MessageBox.Show("Could not perform GitHub authorization!", "Error", MessageBoxButton.OK,
                             MessageBoxImage.Error);
+                        this.IsLoginButtonVisible = true;
                         return;
                     }
                 }
@@ -683,8 +749,7 @@
 
                 this.UpdateCountries();
 
-                // Work with UI
-                this.IsConnectButtonVisible = true;
+                // Work with UI                
                 this.SetStatusLoggedIn();
 
                 // Update remaining traffic
@@ -730,8 +795,7 @@
             try
             {
                 // Work with UI
-                this.IsErrorVisible = false;
-                this.IsConnectButtonVisible = false;
+                this.IsErrorVisible = false;                
                 this.IsLogoutButtonVisible = false;
                 this.vpnCredentials = null;
                 this.requestedCountry = string.Empty;
@@ -756,8 +820,7 @@
                 this.Password = string.Empty;
                 this.RemainingTrafficResponse = String.Empty;
 
-                // Work with UI
-                this.IsConnectButtonVisible = true;
+                // Work with UI                
                 this.InitializeCountriesList();
                 this.SetStatusLoggedOut();
             }

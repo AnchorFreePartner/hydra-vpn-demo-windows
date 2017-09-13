@@ -2,8 +2,6 @@
 {
     using System.Windows;
 
-    using Hydra.Sdk.Vpn.IoC;
-
     public partial class App : Application
     {
         /// <summary>
