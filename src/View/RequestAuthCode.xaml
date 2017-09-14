@@ -5,23 +5,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Hydra.Sdk.Wpf.View"
         mc:Ignorable="d"
-        Title="Enter authentication code" Height="85" Width="200" ShowInTaskbar="False" ResizeMode="NoResize" 
-        WindowStyle="ToolWindow"
-        WindowStartupLocation="CenterScreen" Topmost="True">
+        Title="Enter authentication code"
+        Height="94" Width="204"
+        ShowInTaskbar="False" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" WindowStyle="None"
+        BorderThickness="2"
+        FocusManager.FocusedElement="{Binding ElementName=AuthCodeTextBox}">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30" />
-            <RowDefinition Height="30" />
+            <RowDefinition Height="30" MinHeight="30" />
+            <RowDefinition Height="30" MinHeight="30" />
+            <RowDefinition Height="30" MinHeight="30" />
         </Grid.RowDefinitions>
-        
-        <TextBox Grid.Row="0" Margin="5" Text="{Binding AuthCode, UpdateSourceTrigger=PropertyChanged}" />
-        <Grid Grid.Row="1">
+
+        <TextBlock Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+            Text="Enter authentication code:"/>
+        <TextBox Grid.Row="1" Margin="5"
+                 x:Name="AuthCodeTextBox"
+                 TextAlignment="Center"
+                 FontWeight="Bold"
+                 Text="{Binding AuthCode, UpdateSourceTrigger=PropertyChanged}" />
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.5*" />
                 <ColumnDefinition Width="0.5*" />
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="OK" Margin="5" IsDefault="True" 
+            <Button Grid.Column="0" Content="OK" Margin="5" IsDefault="True"
                     IsEnabled="{Binding IsOkButtonEnabled}"
                     Click="OkButtonClicked"/>
             <Button Grid.Column="1" Content="Cancel" Margin="5" IsCancel="True"
