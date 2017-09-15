@@ -1,4 +1,7 @@
-﻿namespace Hydra.Sdk.Wpf.Helper
+﻿using System;
+using Hydra.Sdk.Common.Logger;
+
+namespace Hydra.Sdk.Wpf.Helper
 {
     using System.Diagnostics;
     using System.ServiceProcess;
@@ -47,22 +50,30 @@
         {
             return await Task.Factory.StartNew(() =>
             {
-                var processStartInfo = new ProcessStartInfo
+                try
                 {
-                    FileName = "Hydra.Sdk.Windows.Service.exe",
-                    Arguments = $"-install {ServiceName}",
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    Verb = "runas",
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
+                    var processStartInfo = new ProcessStartInfo
+                    {
+                        FileName = "Hydra.Sdk.Windows.Service.exe",
+                        Arguments = $"-install {ServiceName}",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        Verb = "runas",
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    };
 
-                var installerProcess = Process.Start(processStartInfo);
-                installerProcess?.WaitForExit();
+                    var installerProcess = Process.Start(processStartInfo);
+                    installerProcess?.WaitForExit();
 
-                return installerProcess?.ExitCode == 0;
+                    return installerProcess?.ExitCode == 0;
+                }
+                catch (Exception e)
+                {
+                    HydraLogger.Error("Could not install hydra service: {0}", e);
+                    return false;
+                }
             });
         }
     }
