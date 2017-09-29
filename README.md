@@ -1,3 +1,5 @@
+GitHub project: https://github.com/AnchorFreePartner/hydra-vpn-demo-windows
+
 # Hydra VPN Windows SDK demo application #
 
 This repository contains demo application which demonstrates usage of Hydra VPN Windows SDK.
