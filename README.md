@@ -1,14 +1,15 @@
 # Hydra VPN Windows SDK demo application #
 
+GitHub project: https://github.com/AnchorFreePartner/hydra-vpn-demo-windows
 This repository contains demo application which demonstrates usage of Hydra VPN Windows SDK.
 
-## Requirements ##
+# Requirements #
 
 This project is based on default Microsoft Visual Studio build process.
 Hydra VPN Windows SDK requires **.Net Framework 4.5**. Demo application requires **Microsoft Visual Studio 2017**.
 Demo application installs TAP driver and Windows service at startup, if something went wrong run `tap\[32bit|64bit]\install-tap.bat` as Administrator to install TAP driver. Use `service\install.bat` and `service\uninstall.bat` when you need to manage Windows service manually.
 
-## Adding SDK to project ##
+# Adding SDK to project #
 
 1. Put the SDK binaries in a suitable place
 2. Reference SDK binaries
@@ -17,7 +18,7 @@ Demo application installs TAP driver and Windows service at startup, if somethin
 
 Now you're all set.
 
-## Usage and core interfaces ##
+# Usage and core interfaces #
 
 SDK contains two core interfaces:
 
@@ -135,7 +136,7 @@ Disconnect from VPN with:
 await vpnClient.Disconnect();
 ``` 
 
-## Change country ##
+# Change country #
 
 Getting available countries list from `IPartnerBackendService`:
 
@@ -154,7 +155,7 @@ var credentialsParam = new GetCredentialsParam(accessToken, country);
 var credentialsResponse = await vpnServerService.GetCredentialsAsync(credentialsParam);
 ```
 
-## Check remaining traffic limit ##
+# Check remaining traffic limit #
 
 User can check remaining traffic limit if it is set:
 
@@ -170,7 +171,7 @@ var remainingTrafficResponseResult = await partnerBackendService.GetRemainingTra
 * Traffic used - used traffic for subscriber
 * Traffic remaining - remaining traffic in bytes traffic
 
-## OAuth or Anonymous authorization ##
+# OAuth or Anonymous authorization #
 
 This example application uses two types of client authorization: with OAuth token and
 Anonymous.
