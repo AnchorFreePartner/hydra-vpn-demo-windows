@@ -1,7 +1,0 @@
-﻿Выполняется удаление сборки 'D:\work\anchorfree\partner\hydra-vpn-demo-windows\service\Hydra.Sdk.Windows.Service.exe'.
-Затронуты следующие параметры:
-   assemblypath = D:\work\anchorfree\partner\hydra-vpn-demo-windows\service\Hydra.Sdk.Windows.Service.exe
-   logfile = D:\work\anchorfree\partner\hydra-vpn-demo-windows\service\Hydra.Sdk.Windows.Service.InstallLog
-Выполняется удаление источника EventLog hydrasvc.
-Выполняется удаление службы hydrasvc из системы...
-Служба hydrasvc успешно удалена из системы.
