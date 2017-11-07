@@ -2,7 +2,7 @@
 
 This is the SDK targeting .NET Framework 4.5 that helps easily develop windows application with required Hydra custom VPN protocol support.
 
-Download [the last version SDK](https://firebasestorage.googleapis.com/v0/b/web-portal-for-partners.appspot.com/o/products%2FHydra-sdk-windows.zip?alt=media&token=4548d1ea-50ce-4c04-9842-2102dbd3517d)
+Download [the last version SDK](https://firebasestorage.googleapis.com/v0/b/web-portal-for-partners.appspot.com/o/products%2FHydra-sdk-windows.zip?alt=media&token=494ec0bc-a513-4521-adba-3be2f8cd79b3)
 
 # Requirements #
 
