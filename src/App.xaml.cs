@@ -1,5 +1,6 @@
 ﻿namespace Hydra.Sdk.Wpf
 {
+    using System;
     using System.Windows;
 
     public partial class App : Application
@@ -12,8 +13,20 @@
         {
             base.OnStartup(e);
 
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+
             var bootstrapper = new Bootstrapper();
             bootstrapper.Run();
+        }
+
+        private void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            if (e.ExceptionObject is Exception ex)
+            {
+                var exceptionType = ex.GetType();
+                MessageBox.Show(ex.ToString(), "Unhandled exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                Environment.Exit(1);
+            }
         }
     }
 }

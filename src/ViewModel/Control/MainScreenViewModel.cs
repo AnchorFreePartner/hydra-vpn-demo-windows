@@ -16,12 +16,12 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
     using System.Windows;
     using System.Windows.Input;
     using System.Windows.Threading;
+    using Windows;
     using Windows.IoC;
+    using Windows.Misc;
+    using Backend.IoC;
+    using Backend.Service;
     using Common.Logger;
-    using Hydra.Sdk.Backend.IoC;
-    using Hydra.Sdk.Backend.Misc;
-    using Hydra.Sdk.Backend.Parameter;
-    using Hydra.Sdk.Backend.Service;
     using Hydra.Sdk.Common.IoC;
     using Hydra.Sdk.Vpn.Config;
     using Hydra.Sdk.Vpn.Service;
@@ -48,7 +48,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// <summary>
         /// Hydra VPN client instance.
         /// </summary>
-        private IHydraVpnClient vpnClient;
+        private IHydraSdk vpnClient;
 
         /// <summary>
         /// Device id for backend login method.
@@ -128,7 +128,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// <summary>
         /// Disconnect button visibility flag.
         /// </summary>
-        private bool isDisconnectButtonVisible;        
+        private bool isDisconnectButtonVisible;
 
         /// <summary>
         /// Connect command.
@@ -144,11 +144,6 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// Clear log command.
         /// </summary>
         private ICommand clearLogCommand;
-
-        /// <summary>
-        /// Current VPN credentials.
-        /// </summary>
-        private VpnCredentials vpnCredentials;
 
         /// <summary>
         /// Timer to update remaining traffic information.
@@ -206,11 +201,6 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         private bool isLoggedIn;
 
         /// <summary>
-        /// Requested country to connect.
-        /// </summary>
-        private string requestedCountry;
-
-        /// <summary>
         /// GitHub login.
         /// </summary>
         private string gitHubLogin;
@@ -219,6 +209,16 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// GitHub password.
         /// </summary>
         private string gitHubPassword;
+
+        /// <summary>
+        /// Bypass domains raw.
+        /// </summary>
+        private string bypassDomains = "iplocation.net\r\n*.iplocation.net";
+
+        /// <summary>
+        /// Reconnect on wakeup event.
+        /// </summary>
+        private bool reconnectOnWakeUp = true;
 
         /// <summary>
         /// <see cref="MainScreenViewModel"/> static constructor. Performs <see cref="MachineId"/> initialization.
@@ -233,9 +233,6 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         public MainScreenViewModel()
         {
-            // Bootstrap VPN and initialize events
-            this.BootstrapVpn();
-
             // Init view model
             var dateTime = DateTime.Now;
             this.DeviceId = $"{MachineId}-{dateTime:dd-MM-yy}";
@@ -559,6 +556,24 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
+        /// Bypass domains raw.
+        /// </summary>
+        public string BypassDomains
+        {
+            get => this.bypassDomains;
+            set => this.SetProperty(ref this.bypassDomains, value);
+        }
+
+        /// <summary>
+        /// Reconnect on wakeup event.
+        /// </summary>
+        public bool ReconnectOnWakeUp
+        {
+            get => this.reconnectOnWakeUp;
+            set => this.SetProperty(ref this.reconnectOnWakeUp, value);
+        }
+
+        /// <summary>
         /// Connect command.
         /// </summary>
         public ICommand ConnectCommand => this.connectCommand ?? (this.connectCommand = new DelegateCommand(this.Connect));
@@ -682,7 +697,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
 
                 return responseJson["token"].ToObject<string>();
             }
-            catch 
+            catch
             {
                 // Something went wrong
                 return string.Empty;
@@ -697,9 +712,8 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             try
             {
                 // Work with UI
-                this.IsErrorVisible = false;                
+                this.IsErrorVisible = false;
                 this.IsLoginButtonVisible = false;
-                this.vpnCredentials = null;
 
                 // Perform logout
                 await LogoutHelper.Logout();
@@ -718,21 +732,16 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                     }
                 }
 
-                // Bootstrap hydra backend with provided CarrierId and BackendUrl
-                var hydraBackendBootstrapper = new HydraBackendBootstrapper(new BackendServerConfiguration(this.CarrierId, this.BackendUrl));
-                hydraBackendBootstrapper.Bootstrap();
+                // Bootstrap VPN
+                BootstrapVpn();
 
-                // Resolve backend service and perform login
-                var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
-                var loginResponse = await backendService.LoginAsync(
-                    new LoginParam
-                    (
-                        this.UseGithubAuthorization ? AuthenticationMethod.GitHub : AuthenticationMethod.Anonymous,
-                        this.DeviceId,
-                        Environment.MachineName,
-                        DeviceType.Desktop,
-                        this.UseGithubAuthorization ? oauthToken : string.Empty
-                    ));
+                // Create AuthMethod
+                var authMethod = this.UseGithubAuthorization
+                    ? AuthMethod.GitHub(oauthToken)
+                    : AuthMethod.Anonymous();
+
+                // Perform login
+                var loginResponse = await vpnClient.Login(authMethod);
 
                 // Check whether login was successful
                 if (!loginResponse.IsSuccess)
@@ -749,7 +758,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
 
                 this.UpdateCountries();
 
-                // Work with UI                
+                // Work with UI
                 this.SetStatusLoggedIn();
 
                 // Update remaining traffic
@@ -769,25 +778,34 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private async void UpdateCountries()
         {
-            // Get backend service reference
-            var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
-            var countriesResponse = await backendService.GetCountriesAsync(this.AccessToken);
-
-            // Check whether request was successful
-            if (!countriesResponse.IsSuccess)
+            try
             {
-                this.IsLoginButtonVisible = true;
-                this.ErrorText = countriesResponse.Error ?? countriesResponse.Result.ToString();
-                this.IsErrorVisible = true;
-                return;
+                // Get available countries
+                var countriesResponse = await vpnClient.GetCountries();
+
+                // Check whether request was successful
+                if (!countriesResponse.IsSuccess)
+                {
+                    this.IsLoginButtonVisible = true;
+                    this.ErrorText = countriesResponse.Error ?? countriesResponse.Result.ToString();
+                    this.IsErrorVisible = true;
+                    return;
+                }
+
+                // Get countries from response
+                var countries = countriesResponse.VpnCountries.Select(x => x.Country).ToList();
+                countries.Insert(0, "");
+
+                // Remember countries
+                this.CountriesList = countries;
             }
-
-            // Get countries from response
-            var countries = countriesResponse.VpnCountries.Select(x => x.Country).ToList();
-            countries.Insert(0, "");
-
-            // Remember countries
-            this.CountriesList = countries;
+            catch (Exception e)
+            {
+                // Show error when exception occured
+                this.IsLoginButtonVisible = true;
+                this.IsErrorVisible = true;
+                this.ErrorText = e.Message;
+            }
         }
 
         private async void Logout()
@@ -795,14 +813,11 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             try
             {
                 // Work with UI
-                this.IsErrorVisible = false;                
+                this.IsErrorVisible = false;
                 this.IsLogoutButtonVisible = false;
-                this.vpnCredentials = null;
-                this.requestedCountry = string.Empty;
 
-                // Resolve backend service and perform logout
-                var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
-                var logoutResponse = await backendService.LogoutAsync(new LogoutRequestParam(this.AccessToken));
+                // Perform logout
+                var logoutResponse = await vpnClient.Logout();
 
                 // Check whether logout was successful
                 if (!logoutResponse.IsSuccess)
@@ -820,7 +835,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 this.Password = string.Empty;
                 this.RemainingTrafficResponse = String.Empty;
 
-                // Work with UI                
+                // Work with UI
                 this.InitializeCountriesList();
                 this.SetStatusLoggedOut();
             }
@@ -856,8 +871,17 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private void InitializeEvents()
         {
-            this.vpnClient.Connected += this.VpnClientOnConnected;
-            this.vpnClient.Disconnected += this.VpnClientOnDisconnected;
+            this.vpnClient.ConnectedChanged += (sender, args) =>
+            {
+                if (args.Connected)
+                {
+                    this.VpnClientOnConnected();
+                }
+                else
+                {
+                    this.VpnClientOnDisconnected();
+                }
+            };
             this.vpnClient.StatisticsChanged += this.VpnClientOnStatisticsChanged;
         }
 
@@ -875,7 +899,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// <summary>
         /// VPN client disconnected event handler.
         /// </summary>
-        private void VpnClientOnDisconnected(object o, VpnDisconnectedEventArgs vpnDisconnectedEventArgs)
+        private void VpnClientOnDisconnected()
         {
             this.SetStatusDisconnected();
         }
@@ -883,7 +907,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// <summary>
         /// VPN client connected event handler.
         /// </summary>
-        private void VpnClientOnConnected(object o, VpnConnectedEventArgs vpnConnectedEventArgs)
+        private void VpnClientOnConnected()
         {
             this.Status = "Connected";
             this.IsConnectButtonVisible = false;
@@ -925,55 +949,6 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Gets VPN credentinals.
-        /// </summary>
-        private async Task GetVpnCredentials()
-        {
-            try
-            {
-                // Work with UI
-                this.IsErrorVisible = false;
-                this.IsConnectButtonVisible = false;
-                this.vpnCredentials = null;
-
-                // Get credentials with AccessToken from Login response and provided Country
-                var backendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
-                var credentialsResponse = await backendService.GetCredentialsAsync(
-                    new GetCredentialsParam
-                        (
-                            this.AccessToken,
-                            this.Country
-                        ));
-
-                // Check whether request was successful
-                if (!credentialsResponse.IsSuccess)
-                {
-                    this.IsConnectButtonVisible = true;
-                    this.ErrorText = credentialsResponse.Error ?? credentialsResponse.Result.ToString();
-                    this.IsErrorVisible = true;
-                    return;
-                }
-
-                // Remember VPN credentials
-                this.Password = credentialsResponse.VpnCredentials.Password;
-                this.VpnIp = credentialsResponse.VpnCredentials.Ip;
-                this.VpnIpServer = credentialsResponse.VpnCredentials.Ip;
-                this.vpnCredentials = credentialsResponse.VpnCredentials;
-                this.IsConnectButtonVisible = true;
-
-                // Update remaining traffic
-                await this.UpdateRemainingTraffic();
-            }
-            catch (Exception e)
-            {
-                // Show error when exception occured
-                this.IsConnectButtonVisible = true;
-                this.IsErrorVisible = true;
-                this.ErrorText = e.Message;
-            }
-        }
-
-        /// <summary>
         /// Checks if Windows service with supplied name exists.
         /// </summary>
         /// <param name="name">Name of Windows service</param>
@@ -1004,18 +979,19 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private void BootstrapVpn()
         {
-            if (this.UseService)
-            {
-                var hydraVpnBootstrapper = new HydraWindowsBootstrapper();
-                hydraVpnBootstrapper.Bootstrap(this.ServiceName);
-            }
-            else
-            {
-                var hydraBootstrapper = new HydraVpnBootstrapper();
-                hydraBootstrapper.Bootstrap();
-            }
+            // Get bypass domains list
+            var bypass = BypassDomains.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            this.vpnClient = HydraIoc.Container.Resolve<IHydraVpnClient>();
+            // Bootstrap hydra backend with provided CarrierId and BackendUrl
+            var backendConfiguration = new BackendServerConfiguration(this.CarrierId, this.BackendUrl, this.DeviceId);
+            var hydraConfiguration = new HydraWindowsConfiguration(this.ServiceName)
+                .AddBypassDomains(bypass)
+                .SetReconnectOnWakeUp(this.ReconnectOnWakeUp);
+
+            var hydraBootstrapper = new HydraWindowsBootstrapper();
+            hydraBootstrapper.Bootstrap(backendConfiguration, hydraConfiguration);
+
+            this.vpnClient = HydraIoc.Container.Resolve<IHydraSdk>();
             InitializeEvents();
         }
 
@@ -1024,33 +1000,17 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private async void Connect()
         {
-            // Get credentials if we need to
-            if (this.vpnCredentials == null || this.requestedCountry != this.Country)
+            try
             {
-                this.requestedCountry = this.Country;
-                await GetVpnCredentials();
+                // Connect VPN using provided VPN server IP and user hash
+                await this.vpnClient.StartVpn(this.Country);
             }
-
-            if (this.vpnCredentials == null)
+            catch (Exception e)
             {
-                // Error occured while receiving the credentials
-                return;
+                // Show error when exception occured
+                this.IsErrorVisible = true;
+                this.ErrorText = e.Message;
             }
-
-            // Check if we want to use Windows service and if service exists
-            if (this.UseService && !this.IsServiceExists(this.ServiceName))
-            {
-                MessageBox.Show($"Could not locate service '{this.ServiceName}', please check whether it is installed.", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            // Bootstrap VPN
-            this.BootstrapVpn();
-
-            // Connect VPN using provided VPN server IP and user hash
-            await this.vpnClient.Connect(
-                new HydraConfigParams { DestinationIp = this.VpnIp, UserHash = this.vpnCredentials?.Password });
         }
 
         /// <summary>
@@ -1058,8 +1018,17 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private async void Disconnect()
         {
-            // Disconnect VPN
-            await this.vpnClient.Disconnect();
+            try
+            {
+                // Disconnect VPN
+                await this.vpnClient.StopVpn();
+            }
+            catch (Exception e)
+            {
+                // Show error when exception occured
+                this.IsErrorVisible = true;
+                this.ErrorText = e.Message;
+            }
 
             // Update UI
             this.SetStatusDisconnected();
@@ -1085,29 +1054,33 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private async Task UpdateRemainingTraffic()
         {
-            // Check if access token is not empty
-            if (string.IsNullOrWhiteSpace(this.AccessToken))
+            try
             {
-                return;
+                // Check if access token is not empty
+                if (string.IsNullOrWhiteSpace(this.AccessToken))
+                {
+                    return;
+                }
+
+                // Get remaining traffic
+                var remainingTrafficResponseResult = await vpnClient.GetRemainingTraffic();
+
+                // Check whether request was successful
+                if (!remainingTrafficResponseResult.IsSuccess)
+                {
+                    return;
+                }
+
+                // Update UI with response data
+                this.RemainingTrafficResponse
+                    = remainingTrafficResponseResult.IsUnlimited
+                        ? "Unlimited"
+                        : $"Bytes remaining: {remainingTrafficResponseResult.TrafficRemaining}\nBytes used: {remainingTrafficResponseResult.TrafficUsed}";
             }
-
-            // Resolve backend service
-            var partnerBackendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
-
-            // Get remaining traffic
-            var remainingTrafficResponseResult = await partnerBackendService.GetRemainingTrafficAsync(new GetRemaningTrafficParam (this.AccessToken));
-
-            // Check whether request was successful
-            if (!remainingTrafficResponseResult.IsSuccess)
+            catch
             {
-                return;
+                // Ignore. There may appear exceptions like "Too much requests"
             }
-
-            // Update UI with response data
-            this.RemainingTrafficResponse
-                = remainingTrafficResponseResult.IsUnlimited
-                      ? "Unlimited"
-                      : $"Bytes remaining: {remainingTrafficResponseResult.TrafficRemaining}\nBytes used: {remainingTrafficResponseResult.TrafficUsed}";
         }
     }
 }

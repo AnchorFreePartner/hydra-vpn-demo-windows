@@ -70,11 +70,11 @@
                         <ColumnDefinition Width="0.5*" />
                         <ColumnDefinition Width="0.5*" />
                     </Grid.ColumnDefinitions>
-                    <CheckBox Grid.Column="0" Content="Anonymous authorization" 
-                              IsChecked="{Binding UseGithubAuthorization, Converter={StaticResource InvertBoolean}}" 
+                    <CheckBox Grid.Column="0" Content="Anonymous authorization"
+                              IsChecked="{Binding UseGithubAuthorization, Converter={StaticResource InvertBoolean}}"
                               IsEnabled="{Binding IsLoggedOut}"/>
-                    <CheckBox Grid.Column="1" Content="GitHub authorization" 
-                              IsChecked="{Binding UseGithubAuthorization}" 
+                    <CheckBox Grid.Column="1" Content="GitHub authorization"
+                              IsChecked="{Binding UseGithubAuthorization}"
                               IsEnabled="{Binding IsLoggedOut}"/>
                 </Grid>
                 <Grid Grid.Row="3" VerticalAlignment="Center">
@@ -91,9 +91,9 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Password:"/>
-                    <PasswordBox Grid.Column="1" 
-                                 IsEnabled="{Binding IsGithubCredentialsEnabled}" 
-                                 helper:PasswordHelper.Attach="True" 
+                    <PasswordBox Grid.Column="1"
+                                 IsEnabled="{Binding IsGithubCredentialsEnabled}"
+                                 helper:PasswordHelper.Attach="True"
                                  helper:PasswordHelper.Password="{Binding GitHubPassword, Mode=OneWayToSource}" />
                 </Grid>
 
@@ -121,7 +121,7 @@
                     <TextBlock Grid.Column="0" Text="Country:" />
                     <ComboBox Grid.Column="1" Text="{Binding Country}" IsEditable="False" ItemsSource="{Binding CountriesList}" IsEnabled="{Binding IsLoggedIn}"/>
                 </Grid>
-                
+
                 <StackPanel Grid.Row="7">
                     <StackPanel Visibility="{Binding IsErrorVisible, Converter={StaticResource BoolToCollapsed}}">
                         <TextBlock Foreground="Red" Text="{Binding ErrorText}" />
@@ -153,15 +153,19 @@
                     <RowDefinition Height="Auto" MinHeight="30" />
                     <RowDefinition Height="Auto" MinHeight="30" />
                     <RowDefinition Height="Auto" MinHeight="30" />
+                    <RowDefinition Height="*" MinHeight="30" />
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" VerticalAlignment="Center">
+                <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="120" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="IP for connection:" />
-                    <TextBox Grid.Column="1" Text="{Binding VpnIp}" IsReadOnly="True"/>
+                    <TextBlock Grid.Column="0" Text="Bypass domains:" VerticalAlignment="Top" />
+                    <TextBox Grid.Column="1" TextWrapping="Wrap" AcceptsReturn="True"
+                             HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                             MaxHeight="72" Height="72" Text="{Binding BypassDomains}"
+                             IsEnabled="{Binding IsLoggedIn, Converter={StaticResource InvertBoolean}}" />
                 </Grid>
 
                 <StackPanel
@@ -173,7 +177,7 @@
                         HorizontalAlignment="Center"
                         Command="{Binding ConnectCommand}"
                         Content="Connect"
-                        Visibility="{Binding IsConnectButtonVisible, Converter={StaticResource BoolToVis}}" 
+                        Visibility="{Binding IsConnectButtonVisible, Converter={StaticResource BoolToVis}}"
                         IsEnabled="{Binding IsLoggedIn}"/>
                     <Button
                         HorizontalAlignment="Center"
@@ -181,6 +185,15 @@
                         Content="Disconnect"
                         Visibility="{Binding IsDisconnectButtonVisible, Converter={StaticResource BoolToVis}}" />
                 </StackPanel>
+
+                <Grid Grid.Row="2" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" Content="Reconnect on WakeUp event"
+                              IsChecked="{Binding ReconnectOnWakeUp}"
+                              IsEnabled="{Binding IsLoggedIn, Converter={StaticResource InvertBoolean}}"/>
+                </Grid>
 
                 <Grid Grid.Row="3" VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
@@ -208,6 +221,7 @@
                     <TextBlock Grid.Column="0" Text="Bytes sent:" />
                     <TextBlock Grid.Column="1" Text="{Binding BytesSent}" />
                 </Grid>
+
 
             </Grid>
         </Grid>
