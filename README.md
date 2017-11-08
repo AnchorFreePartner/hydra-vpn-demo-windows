@@ -7,7 +7,7 @@ This repository contains demo application which demonstrates usage of Hydra VPN 
 
 This project is based on default Microsoft Visual Studio build process.
 Hydra VPN Windows SDK requires **.Net Framework 4.5**. Demo application requires **Microsoft Visual Studio 2017**.
-Demo application installs TAP driver and Windows service at startup, if something went wrong run `tap\[32bit|64bit]\install-tap.bat` as Administrator to install TAP driver. Use `service\install.bat` and `service\uninstall.bat` when you need to manage Windows service manually.
+Demo application installs TAP driver and Windows service at startup. If something goes wrong run `tap\[32bit|64bit]\install-tap.bat` as Administrator to install TAP driver. Use `service\install.bat` and `service\uninstall.bat` when you need to manage Windows service manually.
 
 # Adding SDK to project #
 
@@ -20,7 +20,7 @@ Now you're all set.
 
 # TAP driver installation #  
 
-To install TAP driver go to the `tap` folder and execute `install-tap.bat`  from `32bit` folder for Windows x86 or from `64bit` folder for Windows x64 as Administrator.
+To install TAP driver you need to go to the `tap` folder and execute `install-tap.bat`  from `32bit` folder for Windows x86 or from `64bit` folder for Windows x64 as Administrator.
   
 # Windows service installation #
 
@@ -49,7 +49,7 @@ var hydraConfiguration = new HydraWindowsConfiguration(ServiceName);
 bootstrapper.Bootstrap(backendConfiguration, hydraConfiguration);
 ``` 
 
-If you need to specify bypass domains or disable automatic reconnect on wake up, set corresponding hydra configuration properties before bootstrapping:
+If you need to specify bypass domains or disable automatic reconnection after coming back from sleep mode, set corresponding hydra configuration properties before bootstrapping:
 
 ```C#
 var hydraConfiguration = new HydraWindowsConfiguration(ServiceName)
@@ -85,12 +85,12 @@ After successful login you can execute other methods which requires to be logged
 
 ### Connect example ###
 
-To be able to successfully connect to the VPN server, you need to execute above three steps:
+To be able to successfully connect to the VPN server, you need to execute next three steps:
 1. Bootstrap hydra SDK
 2. Perform login
 3. Call `StartVpn` method
 
-Connect implementation example:
+An example of connect implementation:
 
 ```C#
 var bootstrapper = new HydraWindowsBootstrapper();
@@ -142,7 +142,7 @@ var countries = countriesResponse.VpnCountries;
 // Proceed with countries
 ```
 
-`GetCountries` response contains list of `VpnServerCountry` items. Response must also be checked for OK status. `VpnServerCountry` contains available information - Country and Servers count and is used to specify the required country when connecting to the VPN.
+`GetCountries` response contains list of `VpnServerCountry` items. Response must also be checked for OK status. `VpnServerCountry` contains information about available Country and Servers, and is used to specify the required country for VPN connection.
 
 # Check remaining traffic limit #
 
@@ -154,11 +154,11 @@ var remainingTrafficResponseResult = await hydraSdk.GetRemainingTraffic();
 
 `GetRemainingTrafficResponse` contains information about:
 
-* Is unlimited - is connection unlimited flag
-* Traffic start - beggining session time
+* Is unlimited - connection to unlimited flag
+* Traffic start - beginning session time
 * Traffic limit - limit for traffic usage in bytes
 * Traffic used - used traffic for subscriber
-* Traffic remaining - remaining traffic in bytes traffic
+* Traffic remaining - remaining traffic in bytes
 
 # OAuth or Anonymous authorization #
 
@@ -181,14 +181,14 @@ else
 ```
 
 - `AuthMethod` - one of the valid authentication methods:
-  * GitHub, Facebook, Twitter, Firebase, Live, Google - for public authentication servers,
-  * OAuth - for custom authentication server,
-  * Custom - for custom authentication scheme,
-  * Anonymous - for anonymous authentication.
-- `DeviceId` - unique device id.
-- `MachineName` - name of your machine.
-- `DeviceType` - Desktop or Mobile.
-- `OAuthToken` - valid token from OAuth server or `null` for Anonymous.
+  * GitHub, Facebook, Twitter, Firebase, Live, Google - for public authentication servers
+  * OAuth - for custom authentication server
+  * Custom - for custom authentication scheme
+  * Anonymous - for anonymous authentication
+- `DeviceId` - unique device id
+- `MachineName` - name of your machine
+- `DeviceType` - Desktop or Mobile
+- `OAuthToken` - valid token from OAuth server or `null` for Anonymous
 
 Log out user with:
 
