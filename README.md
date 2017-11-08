@@ -18,149 +18,138 @@ Demo application installs TAP driver and Windows service at startup, if somethin
 
 Now you're all set.
 
+# TAP driver installation #  
+
+To install TAP driver go to the `tap` folder and execute `install-tap.bat`  from `32bit` folder for Windows x86 or from `64bit` folder for Windows x64 as Administrator.
+  
+# Windows service installation #
+
+To be able to use the hydra service you need to install it into the system once. It could be done by following command:
+
+```
+Hydra.Sdk.Windows.Service.exe -install <serviceName>
+``` 
+
+where `serviceName` is the name of your service.
+
 # Usage and core interfaces #
 
-SDK contains two core interfaces:
+SDK contains one core interface - `IHydraSdk`.
 
-1. `IPartnerBackendService`
-2. `IHydraVpnClient`
+### IHydraSdk ###
 
-### IPartnerBackendService ###
-
-This interface manages client user authentication, vpn credentials retrieval, user licensing info,
-session management.
-Session will be saved after first successful sign in and destroyed and cleaned up after logout.
-
-To be able to work with backend service, you need to bootstrap backend module by providing valid ***Carrier ID*** and ***VPN server URL***. This could be done by using following code snippet (you need to reference `Hydra.Sdk.Common` and `Hydra.Sdk.Backend` assemblies):
+To be able to work with hydra sdk, you need to bootstrap hydra by providing valid backend server configuration and hydra configuration. This could be done by using following code snippet (you need to reference `Hydra.Sdk.Windows`, `Hydra.Sdk.Common` and `Hydra.Sdk.Backend` assemblies):
 
 ```C#
-var backendServerConfiguration = new BackendServerConfiguration(carrierId, vpnServerUrl);
-var hydraBackendBootstrapper = new HydraBackendBootstrapper(backendServerConfiguration);
-hydraBackendBootstrapper.Bootstrap();
+var bootstrapper = new HydraWindowsBootstrapper();
+
+var backendConfiguration = new BackendServerConfiguration(CarrierId, VpnServerUrl, DeviceId);
+var hydraConfiguration = new HydraWindowsConfiguration(ServiceName);
+
+bootstrapper.Bootstrap(backendConfiguration, hydraConfiguration);
 ``` 
 
-After bootstrapping you can get the backend service instance by simply resolving `IPartnerBackendService` from IoC container:
+If you need to specify bypass domains or disable automatic reconnect on wake up, set corresponding hydra configuration properties before bootstrapping:
 
 ```C#
-var vpnServerService = HydraIoc.Container.Resolve<IPartnerBackendService>();
+var hydraConfiguration = new HydraWindowsConfiguration(ServiceName)
+    .AddBypassDomains(BypassDomainsList)
+    .SetReconnectOnWakeUp(ReconnectOnWakeUp);
 ```
 
-Login process requires OAuth Access Token and Authentication Method.
-This example uses Anonymous and GitHub for demonstration.
+After bootstrapping you can get the backend service instance by simply resolving `IHydraSdk` from IoC container:
 
 ```C#
-var loginParam = new LoginParam(
-            AuthenticationMethod.Anonymous,
-            DeviceId, // Your device id
-            Environment.MachineName,
-            DeviceType.Desktop,
-            string.Empty // Your OAuth Access Token if necessary
-			);
-
-var loginResponse = await vpnServerService.LoginAsync(loginParam);
+var hydraSdk = HydraIoc.Container.Resolve<IHydraSdk>();
 ```
 
-Do not forget to check whether the request was successful:
+### Login example ###
+
+Login process requires OAuth Access Token and Authentication Method. This example uses Anonymous and GitHub for demonstration. Do not forget to check whether the request was successful:
 
 ```C#
+var authMethod = AuthMethod.Firebase(token);
+var result = await hydraSdk.Login(authMethod);
+
 if (!loginResponse.IsSuccess || loginResponse.Result != ResponseResult.Ok)
 {
-    // Handle unsuccessful request
+    // Handle login error
+}
+else
+{
+    // Handle successful login 
 }
 ```
 
-After successful login you can execute other methods with `AccessToken` from the login response. For example, get credentials:
+After successful login you can execute other methods which requires to be logged in. 
+
+### Connect example ###
+
+To be able to successfully connect to the VPN server, you need to execute above three steps:
+1. Bootstrap hydra SDK
+2. Perform login
+3. Call `StartVpn` method
+
+Connect implementation example:
 
 ```C#
-var credentialsParam = new GetCredentialsParam(accessToken);
+var bootstrapper = new HydraWindowsBootstrapper();
 
-var credentialsResponse = await vpnServerService.GetCredentialsAsync(credentialsParam);
-```
+var backendConfiguration = new BackendServerConfiguration(CarrierId, VpnServerUrl, DeviceId);
+var hydraConfiguration = new HydraWindowsConfiguration(ServiceName);
 
-### IHydraVpnClient ###
+bootstrapper.Bootstrap(backendConfiguration, hydraConfiguration);
 
-This interface manages VPN connection.
+var hydraSdk = HydraIoc.Container.Resolve<IHydraSdk>()
 
-To be able to work with VPN client, first you need to bootstrap VPN module. It could be done by using following code snippet (you need to reference `Hydra.Sdk.Common` and `Hydra.Sdk.Vpn` assemblies):
+var authMethod = AuthMethod.Firebase(token);
+var result = await hydraSdk.Login(authMethod);
 
-```C#
-var hydraVpnBootstrapper = new HydraVpnBootstrapper();
-hydraVpnBootstrapper.Bootstrap();
-``` 
-
-If you want to use service-based approach, reference `Hydra.Sdk.Windows` assembly and use `HydraWindowsBootstrapper` instead of `HydraVpnBootstrapper`.
-
-After bootstrapping you can get the VPN client instance by simply resolving `IHydraVpnClient` from IoC container:
-
-```C#
-var vpnClient = HydraIoc.Container.Resolve<IHydraVpnClient>();
-```
-
-Then you can connect to VPN with Connect() call:
-
-```C#
-var configuration = new HydraConfigParams
+if (!loginResponse.IsSuccess || loginResponse.Result != ResponseResult.Ok)
 {
-    UserHash = credentials.UserName,
-    DestinationIp = credentials.Ip,
-    DestinationPort = !string.IsNullOrWhiteSpace(credentials.Port)
-                          ? int.Parse(credentials.Port)
-                          : 443,    
-};
-
-vpnClient.Connected += (sender, args) => 
-{
-    // Handle connected state
-};
-vpnClient.Disconnected += (sender, args) => 
-{
-    // Handle disconnected state
-};
-vpnClient.StatisticsChanged += (sender, args) => 
-{
-    // Handle bytes count
+    // Handle login error
 }
-
-var connectionResult = await vpnClient.Connect(configuration);
-if (connectionResult == null)
+else
 {
-	// Handle unsuccessful connection
+    hydraSdk.ConnectedChanged += (sender, args) => Console.WriteLine($"Connected: {args.Connected}");
+    hydraSdk.StartVpn();
 }
 ```
-
-Note that `Disconnected` event fires only when hydra is disconnected by itself for some reason, it does not fire when you disconnect it manually.
 
 Disconnect from VPN with:
 
 ```C#
-await vpnClient.Disconnect();
+await hydraSdk.StopVpn();
 ``` 
 
 # Change country #
 
-Getting available countries list from `IPartnerBackendService`:
+Getting available countries list:
 
 ```C#
-var accessToken = loginResponse.AccessToken;
-var getCountriesResult = await vpnServerService.GetCountriesAsync(accessToken);
+// Get available countries
+var countriesResponse = await hydraSdk.GetCountries();
+
+// Check whether request was successful
+if (!countriesResponse.IsSuccess || loginResponse.Result != ResponseResult.Ok)
+{
+    // Handle request error
+}
+
+// Get countries from response
+var countries = countriesResponse.VpnCountries;
+
+// Proceed with countries
 ```
 
-`GetCountriesAsync` response contains list of `VpnServerCountry` items. Response must also be checked for OK status. `VpnServerCountry` contains available information - Country and Servers count and is used to specify the required country when getting VPN credentials:
-
-```C#
-var vpnServerCountry = getCountriesResult.VpnCountries.First();
-var country = vpnServerCountry.Country;
-var credentialsParam = new GetCredentialsParam(accessToken, country);
-
-var credentialsResponse = await vpnServerService.GetCredentialsAsync(credentialsParam);
-```
+`GetCountries` response contains list of `VpnServerCountry` items. Response must also be checked for OK status. `VpnServerCountry` contains available information - Country and Servers count and is used to specify the required country when connecting to the VPN.
 
 # Check remaining traffic limit #
 
 User can check remaining traffic limit if it is set:
 
 ```C#
-var remainingTrafficResponseResult = await partnerBackendService.GetRemainingTrafficAsync(new GetRemaningTrafficParam (this.AccessToken));
+var remainingTrafficResponseResult = await hydraSdk.GetRemainingTraffic();
 ```
 
 `GetRemainingTrafficResponse` contains information about:
@@ -179,20 +168,22 @@ Anonymous.
 Usage:
 
 ```C#
-var loginResponse = await backendService.LoginAsync(
-	new LoginParam
-	(
-		AuthenticationMethod,
-		DeviceId,
-		MachineName,
-		DeviceType,
-		OAuthToken
-	));
+var result = await hydraSdk.Login(authMethod);
+
+if (!loginResponse.IsSuccess || loginResponse.Result != ResponseResult.Ok)
+{
+    // Handle login error
+}
+else
+{
+    // Handle successful login 
+}
 ```
 
-- `AuthenticationMethod` - one of the valid authentication methods:
+- `AuthMethod` - one of the valid authentication methods:
   * GitHub, Facebook, Twitter, Firebase, Live, Google - for public authentication servers,
   * OAuth - for custom authentication server,
+  * Custom - for custom authentication scheme,
   * Anonymous - for anonymous authentication.
 - `DeviceId` - unique device id.
 - `MachineName` - name of your machine.
@@ -202,5 +193,5 @@ var loginResponse = await backendService.LoginAsync(
 Log out user with:
 
 ```C#
-var logoutResponse = await backendService.LogoutAsync(new LogoutRequestParam(this.AccessToken));
+var logoutResponse = await hydraSdk.Logout();
 ```
