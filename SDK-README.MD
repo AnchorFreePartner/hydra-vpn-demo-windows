@@ -199,14 +199,20 @@ Enumeration for backend API response results.
 
 **Values**
 
-|Value            |Description                                                  |
-|-----------------|-------------------------------------------------------------|
-|None             |Default response result                                      |
-|Ok               |Successful response result                                   |
-|NotAuthorized    |Request could not complete because authorization is required |
-|DevicesExceeded  |Available devices count exceeded                             |
-|SessionsExceeded |Available sessions count exceeded                            |
-|NotResponding    |Backend API server is not responding                         |
+|Value               |Description                                                  |
+|--------------------|-------------------------------------------------------------|
+|None                |Default response result                                      |
+|Ok                  |Successful response result                                   |
+|NotAuthorized       |Request could not complete because authorization is required |
+|DevicesExceeded     |Available devices count exceeded                             |
+|SessionsExceeded    |Available sessions count exceeded                            |
+|NotResponding       |Backend API server is not responding                         |
+|ServerUnavailable   |Backend API server is unavailable                            |
+|UserSuspended       |User was deleted during active session                       |
+|TrafficExceeded     |Available traffic limit exceeded                             |
+|InternalServerError |Internal server error occured while processing request       |
+|OAuthError          |Authentication error occurred through OAuth-server           |
+|Invalid             |Password and username doesn’t match records                  |
 
 ### Class BaseApiResult ###
 
