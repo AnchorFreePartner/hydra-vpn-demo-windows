@@ -1077,9 +1077,8 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                         ? "Unlimited"
                         : $"Bytes remaining: {remainingTrafficResponseResult.TrafficRemaining}\nBytes used: {remainingTrafficResponseResult.TrafficUsed}";
             }
-            catch
+            catch (Exception e)
             {
-                // Ignore. There may appear exceptions like "Too much requests"
             }
         }
     }

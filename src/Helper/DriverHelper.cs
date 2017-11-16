@@ -25,17 +25,17 @@ namespace Hydra.Sdk.Wpf.Helper
         /// <summary>
         /// Driver file name.
         /// </summary>
-        private const string DriverFileName = "tap0901.sys";
+        private const string DriverFileName = "aftap0901.sys";
 
         /// <summary>
         /// Inf file name.
         /// </summary>
-        private const string InfFileName = "OemVista.inf";
+        private const string InfFileName = "AFTap.inf";
 
         /// <summary>
         /// Driver HWID.
         /// </summary>
-        private const string Hwid = "tap0901";
+        private const string Hwid = "aftap0901";
 
         private static string PlatformPath => Environment.Is64BitOperatingSystem
             ? "64bit"

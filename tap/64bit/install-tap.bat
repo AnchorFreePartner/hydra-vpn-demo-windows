@@ -1,3 +1,3 @@
 @echo off
-tapinstall.exe install "OemVista.inf" "tap0901"
+tapinstall.exe install "AFTap.inf" "aftap0901"
 pause
