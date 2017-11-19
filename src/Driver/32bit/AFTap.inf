@@ -55,7 +55,7 @@
 
 ; This version number should match the version
 ; number given in SOURCES.
-   DriverVer = 11/06/2017,14.6.59.108
+   DriverVer = 11/10/2017,19.24.12.240
 
 [Strings]
    DeviceDescription = "AnchorFree TAP-Windows Adapter V9"
@@ -184,7 +184,7 @@ aftap0901.sys = 1
 ;   cipsrvr.exe,,,6     ; COPYFLG_NOSKIP | COPYFLG_NOVERSIONCHECK
 
 [aftap0901.driver]
-aftap0901.sys,,,90118    ; (DELFLG_IN_USE1 | COPYFLG_IN_USE_RENAME | COPYFLG_NOPRUNE | COPYFLG_NOVERSIONCHECK | COPYFLG_NOSKIP)  
+   aftap0901.sys,,,90118    ; (DELFLG_IN_USE1 | COPYFLG_IN_USE_RENAME | COPYFLG_NOPRUNE | COPYFLG_NOVERSIONCHECK | COPYFLG_NOSKIP)  
 
 ;---------------------------------------------------------------
 ;                                      End
