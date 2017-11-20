@@ -1,9 +1,10 @@
 ﻿namespace Hydra.Sdk.Wpf
 {
-    using System;    
+    using System;
+    using System.Threading.Tasks;
     using System.Windows;
     using Helper;
-    using Hydra.Sdk.Wpf.View;    
+    using Hydra.Sdk.Wpf.View;
     using Microsoft.Practices.Unity;
     using Prism.Modularity;
     using Prism.Unity;
@@ -13,9 +14,11 @@
     /// </summary>
     public class Bootstrapper : UnityBootstrapper
     {
-        private void EnsureServiceInstalled()
+        private async Task EnsureServiceInstalled()
         {
-            if (!ServiceHelper.IsInstalled())
+            var isInstalled = await ServiceHelper.IsInstalled();
+
+            if (!isInstalled)
             {
                 var installWindow = this.Container.Resolve<InstallingWindow>();
                 installWindow.InstallingWindowViewModel.Component = "hydra service";
@@ -49,7 +52,7 @@
                         Environment.Exit(1);
                     }
                 };
-                installWindow.ShowDialog();                
+                installWindow.ShowDialog();
             }
         }
 
@@ -70,12 +73,12 @@
         /// <summary>
         /// Initializes the shell.
         /// </summary>
-        protected override void InitializeShell()
+        protected override async void InitializeShell()
         {
             base.InitializeShell();
 
             EnsureDriverInstalled();
-            EnsureServiceInstalled();
+            await EnsureServiceInstalled();
 
             Application.Current.MainWindow = (Window)this.Shell;
             Application.Current.MainWindow.Show();

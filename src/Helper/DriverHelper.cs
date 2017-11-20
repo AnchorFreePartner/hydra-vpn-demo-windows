@@ -5,6 +5,7 @@ namespace Hydra.Sdk.Wpf.Helper
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.ServiceProcess;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -49,7 +50,27 @@ namespace Hydra.Sdk.Wpf.Helper
         {
             var driversDirectory = Path.Combine(Environment.SystemDirectory, "drivers");
             var driverPath = Path.Combine(driversDirectory, DriverFileName);
-            return File.Exists(driverPath);
+            return File.Exists(driverPath) && IsServiceInstalled();
+        }
+
+        public static bool IsServiceInstalled()
+        {
+            if (string.IsNullOrWhiteSpace(Hwid))
+            {
+                return false;
+            }
+
+            using (var controller = new ServiceController(Hwid))
+            {
+                try
+                {
+                    return controller.Status == ServiceControllerStatus.Running;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
         }
 
         /// <summary>
