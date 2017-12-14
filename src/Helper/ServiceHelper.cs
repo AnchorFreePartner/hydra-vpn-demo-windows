@@ -90,13 +90,20 @@ namespace Hydra.Sdk.Wpf.Helper
 
         private static string CalculateFileHash(string path)
         {
-            using (var stream = File.Open(path, FileMode.Open, FileAccess.Read))
+            try
             {
-                using (var md5 = MD5.Create())
+                using (var stream = File.Open(path, FileMode.Open, FileAccess.Read))
                 {
-                    var hash = md5.ComputeHash(stream);
-                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant(); ;
+                    using (var md5 = MD5.Create())
+                    {
+                        var hash = md5.ComputeHash(stream);
+                        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant(); ;
+                    }
                 }
+            }
+            catch (Exception)
+            {
+                return string.Empty;
             }
         }
 
