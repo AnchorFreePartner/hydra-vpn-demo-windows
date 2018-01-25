@@ -2,16 +2,24 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 
-[assembly: AssemblyTitle("Hydra.Sdk.Wpf")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Hydra.Sdk.Wpf")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
+
+[assembly: AssemblyCompany("AnchorFree Inc.")]
+[assembly: AssemblyProduct("Hydra Windows SDK")]
+[assembly: AssemblyCopyright("Copyright © 2018 AnchorFree Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: ThemeInfo(ResourceDictionaryLocation.None, ResourceDictionaryLocation.SourceAssembly)]
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: ComVisible(false)]
+
+[assembly: AssemblyVersion("1.0.1.106")]
+[assembly: AssemblyFileVersion("1.0.1.106")]
+
+[assembly: AssemblyTitle("Hydra.Sdk.Wpf")]
+[assembly: AssemblyDescription("Hydra SDK WPF demo application")]
+
+[assembly: ThemeInfo(ResourceDictionaryLocation.None, ResourceDictionaryLocation.SourceAssembly)]
