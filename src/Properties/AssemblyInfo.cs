@@ -16,8 +16,8 @@ using System.Windows;
 
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("1.0.1.106")]
-[assembly: AssemblyFileVersion("1.0.1.106")]
+[assembly: AssemblyVersion("1.0.2.107")]
+[assembly: AssemblyFileVersion("1.0.2.107")]
 
 [assembly: AssemblyTitle("Hydra.Sdk.Wpf")]
 [assembly: AssemblyDescription("Hydra SDK WPF demo application")]
