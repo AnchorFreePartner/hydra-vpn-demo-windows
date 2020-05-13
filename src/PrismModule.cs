@@ -1,6 +1,5 @@
 ﻿namespace Hydra.Sdk.Wpf
 {
-    using Hydra.Sdk.Vpn.Service;
     using Hydra.Sdk.Wpf.Control;
 
     using Microsoft.Practices.Unity;
@@ -41,7 +40,7 @@
         /// </summary>
         public void Initialize()
         {
-            this.unityContainer.RegisterType<IVpnClient>();
+            //this.unityContainer.RegisterType<IVpnClient>();
 
             this.unityContainer.RegisterType<object, MainScreen>(typeof(MainScreen).FullName);
 

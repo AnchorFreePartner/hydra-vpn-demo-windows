@@ -2,8 +2,14 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using Hydra.Sdk.Windows.EventArgs;
+using Hydra.Sdk.Windows.Network.Rules;
+using Hydra.Sdk.Wpf.Countries;
+using Hydra.Sdk.Wpf.Model;
+using Hydra.Sdk.Wpf.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PartnerApi.Model.Nodes;
 
 namespace Hydra.Sdk.Wpf.ViewModel.Control
 {
@@ -19,13 +25,8 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
     using Windows;
     using Windows.IoC;
     using Windows.Misc;
-    using Backend.IoC;
-    using Backend.Service;
     using Common.Logger;
     using Hydra.Sdk.Common.IoC;
-    using Hydra.Sdk.Vpn.Config;
-    using Hydra.Sdk.Vpn.Service;
-    using Hydra.Sdk.Vpn.Service.EventsHandling;
     using Hydra.Sdk.Wpf.Helper;
     using Logger;
     using Microsoft.Practices.ServiceLocation;
@@ -33,7 +34,6 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
     using Prism.Commands;
     using Prism.Mvvm;
     using View;
-    using Vpn.IoC;
 
     /// <summary>
     /// Main screen view model.
@@ -66,9 +66,19 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         private string backendUrl;
 
         /// <summary>
+        /// Vpn node for backend get credentials method.
+        /// </summary>
+        private VpnNode vpnNode;
+
+        /// <summary>
         /// Country for backend get credentials method.
         /// </summary>
         private string country;
+
+        /// <summary>
+        /// Carrier for backend get credentials method.
+        /// </summary>
+        private Carrier carrier;
 
         /// <summary>
         /// Message which is disoplayed in case of errors.
@@ -168,7 +178,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// <summary>
         /// Countries list.
         /// </summary>
-        private IEnumerable<string> countriesList;
+        private IEnumerable<VpnNodeModel> countriesList;
 
         /// <summary>
         /// Use GitHub authorization flag.
@@ -220,6 +230,11 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private bool reconnectOnWakeUp = true;
 
+        private IReadOnlyCollection<VpnNodeModel> nodes;
+        private VpnNodeModel selectedNodeModel;
+
+        private VpnCountriesParser countriesParser;
+
         /// <summary>
         /// <see cref="MainScreenViewModel"/> static constructor. Performs <see cref="MachineId"/> initialization.
         /// </summary>
@@ -237,6 +252,8 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             var dateTime = DateTime.Now;
             this.DeviceId = $"{MachineId}-{dateTime:dd-MM-yy}";
             this.CarrierId = "touchvpn";
+            //this.CarrierId = "afdemo";
+            this.countriesParser = new VpnCountriesParser();
             this.BackendUrl = "https://backend.northghost.com";
             this.IsConnectButtonVisible = false;
             this.SetStatusDisconnected();
@@ -258,7 +275,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private void InitializeCarriers()
         {
-            this.CarrierId = "afdemo";
+            
         }
 
         /// <summary>
@@ -266,7 +283,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// </summary>
         private void InitializeCountriesList()
         {
-            this.CountriesList = new[] { "" };
+            this.CountriesList = new List<VpnNodeModel>();
         }
 
         /// <summary>
@@ -476,7 +493,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// <summary>
         /// Countries list.
         /// </summary>
-        public IEnumerable<string> CountriesList
+        public IEnumerable<VpnNodeModel> CountriesList
         {
             get => this.countriesList;
             set => this.SetProperty(ref this.countriesList, value);
@@ -525,6 +542,24 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 this.RaisePropertyChanged(nameof(IsLoggedOut));
                 this.RaisePropertyChanged(nameof(IsGithubCredentialsEnabled));
             }
+        }
+
+        /// <summary>
+        /// Gets or sets the nodes collection.
+        /// </summary>
+        public IReadOnlyCollection<VpnNodeModel> Nodes
+        {
+            get => this.nodes;
+            set => this.SetProperty(ref this.nodes, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the selected selectedNodeModel.
+        /// </summary>
+        public VpnNodeModel SelectedNodeModel
+        {
+            get => this.selectedNodeModel;
+            set => this.SetProperty(ref this.selectedNodeModel, value);
         }
 
         /// <summary>
@@ -755,7 +790,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 // Remember access token for later usages
                 LogoutHelper.AccessToken = loginResponse.AccessToken;
                 this.AccessToken = loginResponse.AccessToken;
-
+                this.carrier = new Carrier(this.CarrierId, string.Empty, this.AccessToken);
                 this.UpdateCountries();
 
                 // Work with UI
@@ -781,7 +816,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             try
             {
                 // Get available countries
-                var countriesResponse = await vpnClient.GetCountries();
+                var countriesResponse = await vpnClient.GetNodes(this.carrier);
 
                 // Check whether request was successful
                 if (!countriesResponse.IsSuccess)
@@ -793,11 +828,10 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 }
 
                 // Get countries from response
-                var countries = countriesResponse.VpnCountries.Select(x => x.Country).ToList();
-                countries.Insert(0, "");
+                var countries = countriesResponse.VpnNodes.Select(x => this.countriesParser.ToVpnNodeModel(x)).ToList();
 
                 // Remember countries
-                this.CountriesList = countries;
+                this.Nodes = countries;
             }
             catch (Exception e)
             {
@@ -817,7 +851,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 this.IsLogoutButtonVisible = false;
 
                 // Perform logout
-                var logoutResponse = await vpnClient.Logout();
+                var logoutResponse = await vpnClient.Logout(this.carrier);
 
                 // Check whether logout was successful
                 if (!logoutResponse.IsSuccess)
@@ -984,9 +1018,8 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
 
             // Bootstrap hydra backend with provided CarrierId and BackendUrl
             var backendConfiguration = new BackendServerConfiguration(this.CarrierId, this.BackendUrl, this.DeviceId);
-            var hydraConfiguration = new HydraWindowsConfiguration(this.ServiceName)
-                .AddBypassDomains(bypass)
-                .SetReconnectOnWakeUp(this.ReconnectOnWakeUp);
+            var hydraConfiguration = new HydraWindowsConfiguration(serviceName, new Dictionary<int, IConnectionRule>()).AddBypassDomains(bypass);
+            //.SetReconnectOnWakeUp(this.ReconnectOnWakeUp);
 
             var hydraBootstrapper = new HydraWindowsBootstrapper();
             hydraBootstrapper.Bootstrap(backendConfiguration, hydraConfiguration);
@@ -1003,11 +1036,11 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             try
             {
                 // Connect VPN using provided VPN server IP and user hash
-                await this.vpnClient.StartVpn(this.Country);
+                await this.vpnClient.StartVpn(this.SelectedNodeModel.ServerModel);
             }
             catch (Exception e)
             {
-                // Show error when exception occured
+                // Show error when exception occuredR
                 this.IsErrorVisible = true;
                 this.ErrorText = e.Message;
             }
@@ -1063,7 +1096,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 }
 
                 // Get remaining traffic
-                var remainingTrafficResponseResult = await vpnClient.GetRemainingTraffic();
+                var remainingTrafficResponseResult = await vpnClient.GetRemainingTraffic(this.carrier);
 
                 // Check whether request was successful
                 if (!remainingTrafficResponseResult.IsSuccess)

@@ -1,10 +1,11 @@
-﻿namespace Hydra.Sdk.Wpf.Helper
+﻿using PartnerApi;
+using PartnerApi.Parameters;
+
+namespace Hydra.Sdk.Wpf.Helper
 {
     using System;
     using System.Threading.Tasks;
 
-    using Hydra.Sdk.Backend.Parameter;
-    using Hydra.Sdk.Backend.Service;
     using Hydra.Sdk.Common.IoC;
 
     /// <summary>
@@ -25,10 +26,10 @@
             try
             {
                 // Resolve backend service
-                var partnerBackendService = HydraIoc.Container.Resolve<IPartnerBackendService>();
-
+                var partnerBackendService = HydraIoc.Container.Resolve<IBackendService>();
+                var logoutParams = new LogoutParams(AccessToken);
                 // Logout from backend
-                await partnerBackendService.LogoutAsync(new LogoutRequestParam(AccessToken));
+                await partnerBackendService.LogoutAsync(logoutParams);
             }
             catch
             {

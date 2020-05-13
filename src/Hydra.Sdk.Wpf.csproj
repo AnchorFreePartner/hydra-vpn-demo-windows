@@ -38,14 +38,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Hydra.Sdk.Backend">
-      <HintPath>..\lib\Hydra.Sdk.Backend.dll</HintPath>
-    </Reference>
     <Reference Include="Hydra.Sdk.Common">
       <HintPath>..\lib\Hydra.Sdk.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Hydra.Sdk.Vpn">
-      <HintPath>..\lib\Hydra.Sdk.Vpn.dll</HintPath>
     </Reference>
     <Reference Include="Hydra.Sdk.Windows">
       <HintPath>..\lib\Hydra.Sdk.Windows.dll</HintPath>
@@ -64,6 +58,9 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\lib\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PartnerApi">
+      <HintPath>..\lib\PartnerApi.dll</HintPath>
     </Reference>
     <Reference Include="Prism, Version=6.3.0.0, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
       <HintPath>packages\Prism.Core.6.3.0\lib\net45\Prism.dll</HintPath>
@@ -110,6 +107,7 @@
     <Compile Include="Converter\InvertBoolean.cs" />
     <Compile Include="Converter\InvertCollapsed.cs" />
     <Compile Include="Converter\InvertVisibility.cs" />
+    <Compile Include="Countries\VpnCountriesParser.cs" />
     <Compile Include="Helper\DriverHelper.cs" />
     <Compile Include="Helper\LogoutHelper.cs" />
     <Compile Include="Helper\PasswordHelper.cs" />
@@ -117,6 +115,7 @@
     <Compile Include="Helper\ServiceHelper.cs" />
     <Compile Include="Logger\EventLoggerListener.cs" />
     <Compile Include="Logger\LogEntryArrivedEventArgs.cs" />
+    <Compile Include="Model\VpnNodeModel.cs" />
     <Compile Include="ViewModel\Control\MainScreenViewModel.cs" />
     <Compile Include="ViewModel\InstallingWindowViewModel.cs" />
     <Compile Include="ViewModel\RequestAuthCodeViewModel.cs" />
