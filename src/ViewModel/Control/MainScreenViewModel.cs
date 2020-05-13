@@ -3,12 +3,14 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using Hydra.Sdk.Windows.EventArgs;
+using Hydra.Sdk.Windows.Logger;
 using Hydra.Sdk.Windows.Network.Rules;
 using Hydra.Sdk.Wpf.Countries;
 using Hydra.Sdk.Wpf.Model;
 using Hydra.Sdk.Wpf.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PartnerApi.Misc;
 using PartnerApi.Model.Nodes;
 
 namespace Hydra.Sdk.Wpf.ViewModel.Control
@@ -25,8 +27,6 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
     using Windows;
     using Windows.IoC;
     using Windows.Misc;
-    using Common.Logger;
-    using Hydra.Sdk.Common.IoC;
     using Hydra.Sdk.Wpf.Helper;
     using Logger;
     using Microsoft.Practices.ServiceLocation;
@@ -268,6 +268,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             // Init predefined carriers and countries
             this.InitializeCarriers();
             this.InitializeCountriesList();
+            BootstrapVpn();
         }
 
         /// <summary>
@@ -1035,8 +1036,10 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         {
             try
             {
+                var provideResponse =
+                    await this.vpnClient.Provide(this.SelectedNodeModel.ServerModel, false, ProtocolType.HydraTcp);
                 // Connect VPN using provided VPN server IP and user hash
-                await this.vpnClient.StartVpn(this.SelectedNodeModel.ServerModel);
+                await this.vpnClient.StartVpn(this.SelectedNodeModel.ServerModel).ConfigureAwait(false);
             }
             catch (Exception e)
             {

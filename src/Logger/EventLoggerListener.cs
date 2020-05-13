@@ -1,7 +1,8 @@
-﻿namespace Hydra.Sdk.Wpf.Logger
+﻿using Hydra.Sdk.Windows.Logger;
+
+namespace Hydra.Sdk.Wpf.Logger
 {
     using System;
-    using Common.Logger;
 
     /// <summary>
     /// Event-based logger listener.

@@ -1,4 +1,5 @@
-﻿using PartnerApi;
+﻿using Hydra.Sdk.Windows.IoC;
+using PartnerApi;
 using PartnerApi.Parameters;
 
 namespace Hydra.Sdk.Wpf.Helper
@@ -6,7 +7,6 @@ namespace Hydra.Sdk.Wpf.Helper
     using System;
     using System.Threading.Tasks;
 
-    using Hydra.Sdk.Common.IoC;
 
     /// <summary>
     /// Logout related properties and methods.

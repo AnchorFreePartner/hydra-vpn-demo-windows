@@ -1,5 +1,5 @@
 ﻿using System;
-using Hydra.Sdk.Common.Logger;
+using Hydra.Sdk.Windows.Logger;
 
 namespace Hydra.Sdk.Wpf.Helper
 {
