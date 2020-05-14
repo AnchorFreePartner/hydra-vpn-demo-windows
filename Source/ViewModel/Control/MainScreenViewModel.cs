@@ -251,10 +251,10 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             // Init view model
             var dateTime = DateTime.Now;
             this.DeviceId = $"{MachineId}-{dateTime:dd-MM-yy}";
-            this.CarrierId = "touchvpn";
-            //this.CarrierId = "afdemo";
+            //this.CarrierId = "touchvpn";
+            this.CarrierId = "afdemo";
             this.countriesParser = new VpnCountriesParser();
-            this.BackendUrl = "https://backend.northghost.com";
+            this.BackendUrl = "https://backend.northghost.com/";
             this.IsConnectButtonVisible = false;
             this.SetStatusDisconnected();
             this.SetStatusLoggedOut();
@@ -1036,8 +1036,6 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         {
             try
             {
-                var provideResponse =
-                    await this.vpnClient.Provide(this.SelectedNodeModel.ServerModel, false, ProtocolType.HydraTcp);
                 // Connect VPN using provided VPN server IP and user hash
                 await this.vpnClient.StartVpn(this.SelectedNodeModel.ServerModel).ConfigureAwait(false);
             }
