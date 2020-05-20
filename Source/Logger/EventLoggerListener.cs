@@ -1,8 +1,11 @@
-﻿using Hydra.Sdk.Windows.Logger;
+﻿// <copyright file="EventLoggerListener.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
 
 namespace Hydra.Sdk.Wpf.Logger
 {
     using System;
+    using Hydra.Sdk.Windows.Logger;
 
     /// <summary>
     /// Event-based logger listener.
@@ -64,7 +67,7 @@ namespace Hydra.Sdk.Wpf.Logger
         /// <param name="logEntry">Log entry message.</param>
         protected virtual void OnLogEntryArrived(string logEntry)
         {
-            LogEntryArrived?.Invoke(this, new LogEntryArrivedEventArgs(logEntry));
+            this.LogEntryArrived?.Invoke(this, new LogEntryArrivedEventArgs(logEntry));
         }
     }
 }

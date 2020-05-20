@@ -1,249 +1,93 @@
-﻿using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using Hydra.Sdk.Windows.EventArgs;
-using Hydra.Sdk.Windows.Logger;
-using Hydra.Sdk.Windows.Network.Rules;
-using Hydra.Sdk.Wpf.Countries;
-using Hydra.Sdk.Wpf.Model;
-using Hydra.Sdk.Wpf.Properties;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PartnerApi.Misc;
-using PartnerApi.Model.Nodes;
+﻿// <copyright file="MainScreenViewModel.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
 
 namespace Hydra.Sdk.Wpf.ViewModel.Control
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
-    using System.Security.Authentication.ExtendedProtection;
-    using System.ServiceProcess;
+    using System.Net;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+    using System.Text;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Input;
     using System.Windows.Threading;
-    using Windows;
-    using Windows.IoC;
-    using Windows.Misc;
+    using Hydra.Sdk.Windows;
+    using Hydra.Sdk.Windows.EventArgs;
+    using Hydra.Sdk.Windows.IoC;
+    using Hydra.Sdk.Windows.Logger;
+    using Hydra.Sdk.Windows.Misc;
+    using Hydra.Sdk.Windows.Network.Rules;
+    using Hydra.Sdk.Wpf.Countries;
     using Hydra.Sdk.Wpf.Helper;
-    using Logger;
+    using Hydra.Sdk.Wpf.Logger;
+    using Hydra.Sdk.Wpf.Model;
+    using Hydra.Sdk.Wpf.View;
     using Microsoft.Practices.ServiceLocation;
-    using Microsoft.Practices.Unity;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using PartnerApi.Model.Nodes;
     using Prism.Commands;
     using Prism.Mvvm;
-    using View;
 
     /// <summary>
     /// Main screen view model.
     /// </summary>
     public class MainScreenViewModel : BindableBase
     {
-        /// <summary>
-        /// Machine GUID from registry.
-        /// </summary>
-        private static readonly string MachineId;
-
-        /// <summary>
-        /// Hydra VPN client instance.
-        /// </summary>
-        private IHydraSdk vpnClient;
-
-        /// <summary>
-        /// Device id for backend login method.
-        /// </summary>
-        private string deviceId;
-
-        /// <summary>
-        /// Carrier id for backend service.
-        /// </summary>
-        private string carrierId;
-
-        /// <summary>
-        /// Backend url for backend service.
-        /// </summary>
-        private string backendUrl;
-
-        /// <summary>
-        /// Vpn node for backend get credentials method.
-        /// </summary>
-        private VpnNode vpnNode;
-
-        /// <summary>
-        /// Country for backend get credentials method.
-        /// </summary>
-        private string country;
-
-        /// <summary>
-        /// Carrier for backend get credentials method.
-        /// </summary>
-        private Carrier carrier;
-
-        /// <summary>
-        /// Message which is disoplayed in case of errors.
-        /// </summary>
-        private string errorText;
-
-        /// <summary>
-        /// Access token for backend methods.
-        /// </summary>
-        private string accessToken;
-
-        /// <summary>
-        /// User password for hydra.
-        /// </summary>
-        private string password;
-
-        /// <summary>
-        /// VPN service IP address.
-        /// </summary>
-        private string vpnIpServerServer;
-
-        /// <summary>
-        /// VPN service IP address.
-        /// </summary>
-        private string vpnIp;
-
-        /// <summary>
-        /// Received bytes count.
-        /// </summary>
-        private string bytesReceived;
-
-        /// <summary>
-        /// Sent bytes count.
-        /// </summary>
-        private string bytesSent;
-
-        /// <summary>
-        /// VPN connection status.
-        /// </summary>
-        private string status;
-
-        /// <summary>
-        /// Remaining traffic response.
-        /// </summary>
-        private string remainingTrafficResponse;
-
-        /// <summary>
-        /// Error visibility flag.
-        /// </summary>
-        private bool isErrorVisible;
-
-        /// <summary>
-        /// Connect button visibility flag.
-        /// </summary>
-        private bool isConnectButtonVisible;
-
-        /// <summary>
-        /// Disconnect button visibility flag.
-        /// </summary>
-        private bool isDisconnectButtonVisible;
-
-        /// <summary>
-        /// Connect command.
-        /// </summary>
+        private static readonly string MachineId = RegistryHelper.GetMachineGuid();
         private ICommand connectCommand;
-
-        /// <summary>
-        /// Disconnect command.
-        /// </summary>
         private ICommand disconnectCommand;
-
-        /// <summary>
-        /// Clear log command.
-        /// </summary>
         private ICommand clearLogCommand;
-
-        /// <summary>
-        /// Timer to update remaining traffic information.
-        /// </summary>
-        private DispatcherTimer dispatcherTimer;
-
-        /// <summary>
-        /// Use service flag.
-        /// </summary>
-        private bool useService = true;
-
-        /// <summary>
-        /// Name of windows service to use to establish hydra connection.
-        /// </summary>
-        private string serviceName = "hydrasvc";
-
-        /// <summary>
-        /// Hydra log contents.
-        /// </summary>
-        private string logContents;
-
-        /// <summary>
-        /// Countries list.
-        /// </summary>
-        private IEnumerable<VpnNodeModel> countriesList;
-
-        /// <summary>
-        /// Use GitHub authorization flag.
-        /// </summary>
-        private bool useGithubAuthorization;
-
-        /// <summary>
-        /// Login command.
-        /// </summary>
         private ICommand loginCommand;
-
-        /// <summary>
-        /// Logout command
-        /// </summary>
         private ICommand logoutCommand;
-
-        /// <summary>
-        /// Login button visibility flag.
-        /// </summary>
+        private IHydraSdk vpnClient;
+        private IReadOnlyCollection<VpnNodeModel> nodes;
+        private VpnNodeModel selectedNodeModel;
+        private Carrier carrier;
+        private DispatcherTimer dispatcherTimer;
+        private string deviceId;
+        private string carrierId;
+        private string backendAddress;
+        private string country;
+        private string errorText;
+        private string accessToken;
+        private string password;
+        private string vpnIpServerServer;
+        private string vpnIp;
+        private string bytesReceived;
+        private string bytesSent;
+        private string status;
+        private string remainingTrafficResponse;
+        private string gitHubLogin;
+        private string gitHubPassword;
+        private string bypassDomains = "iplocation.net\r\n*.iplocation.net";
+        private string serviceName = "hydrasvc";
+        private string logContents;
+        private bool isErrorVisible;
+        private bool isConnectButtonVisible;
+        private bool isDisconnectButtonVisible;
+        private bool reconnectOnWakeUp = true;
+        private bool useService = true;
+        private bool useGithubAuthorization;
         private bool isLoginButtonVisible;
-
-        /// <summary>
-        /// Logout button visibility flag.
-        /// </summary>
         private bool isLogoutButtonVisible;
-
-        /// <summary>
-        /// Logged in flag.
-        /// </summary>
         private bool isLoggedIn;
 
         /// <summary>
-        /// GitHub login.
-        /// </summary>
-        private string gitHubLogin;
-
-        /// <summary>
-        /// GitHub password.
-        /// </summary>
-        private string gitHubPassword;
-
-        /// <summary>
-        /// Bypass domains raw.
-        /// </summary>
-        private string bypassDomains = "iplocation.net\r\n*.iplocation.net";
-
-        /// <summary>
-        /// Reconnect on wakeup event.
-        /// </summary>
-        private bool reconnectOnWakeUp = true;
-
-        private IReadOnlyCollection<VpnNodeModel> nodes;
-        private VpnNodeModel selectedNodeModel;
-
-        private VpnCountriesParser countriesParser;
-
-        /// <summary>
+        /// Initializes static members of the <see cref="MainScreenViewModel"/> class.
         /// <see cref="MainScreenViewModel"/> static constructor. Performs <see cref="MachineId"/> initialization.
         /// </summary>
         static MainScreenViewModel()
         {
-            MachineId = RegistryHelper.GetMachineGuid();
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="MainScreenViewModel"/> class.
         /// <see cref="MainScreenViewModel"/> default constructor.
         /// </summary>
         public MainScreenViewModel()
@@ -251,10 +95,10 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             // Init view model
             var dateTime = DateTime.Now;
             this.DeviceId = $"{MachineId}-{dateTime:dd-MM-yy}";
-            //this.CarrierId = "touchvpn";
+
+            // this.CarrierId = "touchvpn";
             this.CarrierId = "afdemo";
-            this.countriesParser = new VpnCountriesParser();
-            this.BackendUrl = "https://backend.northghost.com/";
+            this.BackendAddress = "https://backend.northghost.com/";
             this.IsConnectButtonVisible = false;
             this.SetStatusDisconnected();
             this.SetStatusLoggedOut();
@@ -265,54 +109,11 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             // Init logging
             this.InitializeLogging();
 
-            // Init predefined carriers and countries
-            this.InitializeCarriers();
-            this.InitializeCountriesList();
-            BootstrapVpn();
+            this.BootstrapVpn();
         }
 
         /// <summary>
-        /// Performs predefined carriers initialization.
-        /// </summary>
-        private void InitializeCarriers()
-        {
-            
-        }
-
-        /// <summary>
-        /// Performs countries list initialization.
-        /// </summary>
-        private void InitializeCountriesList()
-        {
-            this.CountriesList = new List<VpnNodeModel>();
-        }
-
-        /// <summary>
-        /// Performs logging initialization.
-        /// </summary>
-        private void InitializeLogging()
-        {
-            var loggerListener = new EventLoggerListener();
-            loggerListener.LogEntryArrived += (sender, args) => AddLogEntry(args.Entry);
-            HydraLogger.AddHandler(loggerListener);
-        }
-
-        /// <summary>
-        /// Adds new log entry to the log contents.
-        /// </summary>
-        /// <param name="logEntry">Log entry to add.</param>
-        private void AddLogEntry(string logEntry)
-        {
-            if (string.IsNullOrWhiteSpace(this.LogContents))
-            {
-                this.LogContents = string.Empty;
-            }
-
-            this.LogContents += logEntry + Environment.NewLine;
-        }
-
-        /// <summary>
-        /// Device id for backend login method.
+        /// Gets or sets device id for backend login method.
         /// </summary>
         public string DeviceId
         {
@@ -321,7 +122,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Carrier id for backend service.
+        /// Gets or sets carrier id for backend service.
         /// </summary>
         public string CarrierId
         {
@@ -330,16 +131,16 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Backend url for backend service.
+        /// Gets or sets backend url address for backend service.
         /// </summary>
-        public string BackendUrl
+        public string BackendAddress
         {
-            get => this.backendUrl;
-            set => this.SetProperty(ref this.backendUrl, value);
+            get => this.backendAddress;
+            set => this.SetProperty(ref this.backendAddress, value);
         }
 
         /// <summary>
-        /// Message which is disoplayed in case of errors.
+        /// Gets or sets message which is disoplayed in case of errors.
         /// </summary>
         public string ErrorText
         {
@@ -348,7 +149,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Access token for backend methods.
+        /// Gets or sets access token for backend methods.
         /// </summary>
         public string AccessToken
         {
@@ -357,7 +158,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// User password for hydra.
+        /// Gets or sets user password for hydra.
         /// </summary>
         public string Password
         {
@@ -366,7 +167,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// VPN service IP address.
+        /// Gets or sets vPN service IP address.
         /// </summary>
         public string VpnIpServer
         {
@@ -375,7 +176,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// VPN service IP address.
+        /// Gets or sets vPN service IP address.
         /// </summary>
         public string VpnIp
         {
@@ -384,7 +185,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Remaining traffic response.
+        /// Gets or sets remaining traffic response.
         /// </summary>
         public string RemainingTrafficResponse
         {
@@ -393,7 +194,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Error visibility flag.
+        /// Gets or sets a value indicating whether error visibility flag.
         /// </summary>
         public bool IsErrorVisible
         {
@@ -402,7 +203,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Connect button visibility flag.
+        /// Gets or sets a value indicating whether connect button visibility flag.
         /// </summary>
         public bool IsConnectButtonVisible
         {
@@ -411,7 +212,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Disconnect button visibility flag.
+        /// Gets or sets a value indicating whether disconnect button visibility flag.
         /// </summary>
         public bool IsDisconnectButtonVisible
         {
@@ -420,7 +221,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Received bytes count.
+        /// Gets or sets received bytes count.
         /// </summary>
         public string BytesReceived
         {
@@ -429,7 +230,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Sent bytes count.
+        /// Gets or sets sent bytes count.
         /// </summary>
         public string BytesSent
         {
@@ -438,7 +239,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// VPN connection status.
+        /// Gets or sets vPN connection status.
         /// </summary>
         public string Status
         {
@@ -447,7 +248,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Country for backend get credentials method.
+        /// Gets or sets country for backend get credentials method.
         /// </summary>
         public string Country
         {
@@ -456,7 +257,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Use service flag.
+        /// Gets or sets a value indicating whether use service flag.
         /// </summary>
         public bool UseService
         {
@@ -465,7 +266,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Name of windows service to use to establish hydra connection.
+        /// Gets or sets name of windows service to use to establish hydra connection.
         /// </summary>
         public string ServiceName
         {
@@ -474,16 +275,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Logging enabled flag.
-        /// </summary>
-        public bool IsLoggingEnabled
-        {
-            get => HydraLogger.IsEnabled;
-            set => HydraLogger.IsEnabled = value;
-        }
-
-        /// <summary>
-        /// Hydra log contents.
+        /// Gets or sets hydra log contents.
         /// </summary>
         public string LogContents
         {
@@ -492,16 +284,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Countries list.
-        /// </summary>
-        public IEnumerable<VpnNodeModel> CountriesList
-        {
-            get => this.countriesList;
-            set => this.SetProperty(ref this.countriesList, value);
-        }
-
-        /// <summary>
-        /// Use GitHub authorization flag.
+        /// Gets or sets a value indicating whether use GitHub authorization flag.
         /// </summary>
         public bool UseGithubAuthorization
         {
@@ -509,12 +292,12 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             set
             {
                 this.SetProperty(ref this.useGithubAuthorization, value);
-                this.RaisePropertyChanged(nameof(IsGithubCredentialsEnabled));
+                this.RaisePropertyChanged(nameof(this.IsGithubCredentialsEnabled));
             }
         }
 
         /// <summary>
-        /// Login button visibility flag.
+        /// Gets or sets a value indicating whether login button visibility flag.
         /// </summary>
         public bool IsLoginButtonVisible
         {
@@ -523,7 +306,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Logout button visibility flag.
+        /// Gets or sets a value indicating whether logout button visibility flag.
         /// </summary>
         public bool IsLogoutButtonVisible
         {
@@ -532,7 +315,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Logged in flag.
+        /// Gets or sets a value indicating whether logged in flag.
         /// </summary>
         public bool IsLoggedIn
         {
@@ -540,8 +323,8 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             set
             {
                 this.SetProperty(ref this.isLoggedIn, value);
-                this.RaisePropertyChanged(nameof(IsLoggedOut));
-                this.RaisePropertyChanged(nameof(IsGithubCredentialsEnabled));
+                this.RaisePropertyChanged(nameof(this.IsLoggedOut));
+                this.RaisePropertyChanged(nameof(this.IsGithubCredentialsEnabled));
             }
         }
 
@@ -564,17 +347,17 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Logged out flag.
+        /// Gets a value indicating whether logged out flag.
         /// </summary>
         public bool IsLoggedOut => !this.isLoggedIn;
 
         /// <summary>
-        /// GitHub credentials enabled flag.
+        /// Gets a value indicating whether gitHub credentials enabled flag.
         /// </summary>
-        public bool IsGithubCredentialsEnabled => UseGithubAuthorization && IsLoggedOut;
+        public bool IsGithubCredentialsEnabled => this.UseGithubAuthorization && this.IsLoggedOut;
 
         /// <summary>
-        /// GitHub login.
+        /// Gets or sets gitHub login.
         /// </summary>
         public string GitHubLogin
         {
@@ -583,7 +366,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// GitHub password.
+        /// Gets or sets gitHub password.
         /// </summary>
         public string GitHubPassword
         {
@@ -592,7 +375,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Bypass domains raw.
+        /// Gets or sets bypass domains raw.
         /// </summary>
         public string BypassDomains
         {
@@ -601,7 +384,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Reconnect on wakeup event.
+        /// Gets or sets a value indicating whether reconnect on wakeup event.
         /// </summary>
         public bool ReconnectOnWakeUp
         {
@@ -610,30 +393,89 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Connect command.
+        /// Gets connect command.
         /// </summary>
         public ICommand ConnectCommand => this.connectCommand ?? (this.connectCommand = new DelegateCommand(this.Connect));
 
         /// <summary>
-        /// Disconnect command.
+        /// Gets disconnect command.
         /// </summary>
         public ICommand DisconnectCommand => this.disconnectCommand ?? (this.disconnectCommand = new DelegateCommand(this.Disconnect));
 
         /// <summary>
-        /// Clear log command.
+        /// Gets clear log command.
         /// </summary>
         public ICommand ClearLogCommand => this.clearLogCommand ??
                                            (this.clearLogCommand = new DelegateCommand(this.ClearLog));
 
         /// <summary>
-        /// Login command.
+        /// Gets login command.
         /// </summary>
         public ICommand LoginCommand => this.loginCommand ?? (this.loginCommand = new DelegateCommand(this.Login));
 
         /// <summary>
-        /// Logout command.
+        /// Gets logout command.
         /// </summary>
         public ICommand LogoutCommand => this.logoutCommand ?? (this.logoutCommand = new DelegateCommand(this.Logout));
+
+        /// <summary>
+        /// Gets GiHub OAuth token.
+        /// </summary>
+        /// <param name="login">User login.</param>
+        /// <param name="pass">User password.</param>
+        /// <returns>OAuth token or string.Empty in case of failure.</returns>
+        private static async Task<string> GetGithubOAuthToken(string login, string pass)
+        {
+            const string githubOtpHeader = "X-GitHub-OTP";
+
+            try
+            {
+                var response = await LoginGithub(login, pass).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == HttpStatusCode.Unauthorized
+                        && response.Headers.Contains(githubOtpHeader))
+                    {
+                        HydraLogger.Trace("Two-factor authentication enabled");
+
+                        var requestAuthCode = ServiceLocator.Current.GetInstance<RequestAuthCode>();
+
+                        requestAuthCode.ShowDialog();
+                        if (requestAuthCode.DialogResult != true)
+                        {
+                            HydraLogger.Trace("Cancel authorization!");
+                            return string.Empty;
+                        }
+
+                        var authCode = requestAuthCode.RequestAuthCodeViewModel.AuthCode;
+                        HydraLogger.Trace("Sending authentication code...");
+
+                        response = await LoginGithub(login, pass, authCode).ConfigureAwait(false);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            HydraLogger.Trace("Two-factor authentication failed!");
+                            return string.Empty;
+                        }
+                    }
+                    else
+                    {
+                        HydraLogger.Trace("Unable to get OAuth token from GitHub!");
+                        return string.Empty;
+                    }
+                }
+
+                HydraLogger.Trace("Got valid response from GitHub");
+                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var responseJson = JObject.Parse(responseString);
+
+                return responseJson["token"].ToObject<string>();
+            }
+            catch
+            {
+                // Something went wrong
+                return string.Empty;
+            }
+        }
 
         /// <summary>
         /// Performs login to GitHub.
@@ -641,8 +483,8 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// <param name="login">User login.</param>
         /// <param name="pass">User password.</param>
         /// <param name="authCode">Optional authentication code for two-factor authentication.</param>
-        /// <returns><see cref="HttpResponseMessage"/></returns>
-        private async Task<HttpResponseMessage> LoginGithub(string login, string pass, string authCode = null)
+        /// <returns><see cref="HttpResponseMessage"/>.</returns>
+        private static async Task<HttpResponseMessage> LoginGithub(string login, string pass, string authCode = null)
         {
             const string apiUrl = "https://api.github.com/authorizations";
             const string clientId = "70ed6ffd4b08b3119208";
@@ -654,7 +496,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             {
                 scopes = new string[] { },
                 client_id = clientId,
-                client_secret = clientSecret
+                client_secret = clientSecret,
             };
 
             using (var client = new HttpClient())
@@ -676,68 +518,33 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                     message.Content = content;
 
                     HydraLogger.Trace("Trying to get OAuth token from GitHub...");
-                    return await client.SendAsync(message);
+                    return await client.SendAsync(message).ConfigureAwait(false);
                 }
             }
         }
 
         /// <summary>
-        /// Gets GiHub OAuth token.
+        /// Performs logging initialization.
         /// </summary>
-        /// <param name="login">User login.</param>
-        /// <param name="pass">User password.</param>
-        /// <returns>OAuth token or string.Empty in case of failure.</returns>
-        private async Task<string> GetGithubOAuthToken(string login, string pass)
+        private void InitializeLogging()
         {
-            const string githubOtpHeader = "X-GitHub-OTP";
+            var loggerListener = new EventLoggerListener();
+            loggerListener.LogEntryArrived += (sender, args) => this.AddLogEntry(args.Entry);
+            HydraLogger.AddHandler(loggerListener);
+        }
 
-            try
+        /// <summary>
+        /// Adds new log entry to the log contents.
+        /// </summary>
+        /// <param name="logEntry">Log entry to add.</param>
+        private void AddLogEntry(string logEntry)
+        {
+            if (string.IsNullOrWhiteSpace(this.LogContents))
             {
-                var response = await this.LoginGithub(login, pass);
-                if (!response.IsSuccessStatusCode)
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                        && response.Headers.Contains(githubOtpHeader))
-                    {
-                        HydraLogger.Trace("Two-factor authentication enabled");
-
-                        var requestAuthCode = ServiceLocator.Current.GetInstance<RequestAuthCode>();
-
-                        requestAuthCode.ShowDialog();
-                        if (requestAuthCode.DialogResult != true)
-                        {
-                            HydraLogger.Trace("Cancel authorization!");
-                            return string.Empty;
-                        }
-
-                        var authCode = requestAuthCode.RequestAuthCodeViewModel.AuthCode;
-                        HydraLogger.Trace("Sending authentication code...");
-
-                        response = await this.LoginGithub(login, pass, authCode);
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            HydraLogger.Trace("Two-factor authentication failed!");
-                            return string.Empty;
-                        }
-                    }
-                    else
-                    {
-                        HydraLogger.Trace("Unable to get OAuth token from GitHub!");
-                        return string.Empty;
-                    }
-                }
-
-                HydraLogger.Trace("Got valid response from GitHub");
-                var responseString = await response.Content.ReadAsStringAsync();
-                var responseJson = JObject.Parse(responseString);
-
-                return responseJson["token"].ToObject<string>();
+                this.LogContents = string.Empty;
             }
-            catch
-            {
-                // Something went wrong
-                return string.Empty;
-            }
+
+            this.LogContents += logEntry + Environment.NewLine;
         }
 
         /// <summary>
@@ -752,24 +559,23 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 this.IsLoginButtonVisible = false;
 
                 // Perform logout
-                await LogoutHelper.Logout();
+                await LogoutHelper.Logout().ConfigureAwait(false);
 
                 // Get GitHub OAuth token if necessary
                 string oauthToken = string.Empty;
-                if (UseGithubAuthorization)
+                if (this.UseGithubAuthorization)
                 {
-                    oauthToken = await GetGithubOAuthToken(GitHubLogin, GitHubPassword);
+                    oauthToken = await GetGithubOAuthToken(this.GitHubLogin, this.GitHubPassword).ConfigureAwait(false);
                     if (string.IsNullOrWhiteSpace(oauthToken))
                     {
-                        MessageBox.Show("Could not perform GitHub authorization!", "Error", MessageBoxButton.OK,
-                            MessageBoxImage.Error);
+                        MessageBox.Show("Could not perform GitHub authorization!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         this.IsLoginButtonVisible = true;
                         return;
                     }
                 }
 
                 // Bootstrap VPN
-                BootstrapVpn();
+                this.BootstrapVpn();
 
                 // Create AuthMethod
                 var authMethod = this.UseGithubAuthorization
@@ -777,7 +583,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                     : AuthMethod.Anonymous();
 
                 // Perform login
-                var loginResponse = await vpnClient.Login(authMethod);
+                var loginResponse = await this.vpnClient.Login(authMethod).ConfigureAwait(false);
 
                 // Check whether login was successful
                 if (!loginResponse.IsSuccess)
@@ -798,7 +604,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 this.SetStatusLoggedIn();
 
                 // Update remaining traffic
-                await this.UpdateRemainingTraffic();
+                await this.UpdateRemainingTraffic().ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -817,7 +623,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             try
             {
                 // Get available countries
-                var countriesResponse = await vpnClient.GetNodes(this.carrier);
+                var countriesResponse = await this.vpnClient.GetNodes(this.carrier).ConfigureAwait(false);
 
                 // Check whether request was successful
                 if (!countriesResponse.IsSuccess)
@@ -829,7 +635,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 }
 
                 // Get countries from response
-                var countries = countriesResponse.VpnNodes.Select(x => this.countriesParser.ToVpnNodeModel(x)).ToList();
+                var countries = countriesResponse.VpnNodes.Select(VpnCountriesParser.ToVpnNodeModel).ToList();
 
                 // Remember countries
                 this.Nodes = countries;
@@ -852,7 +658,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 this.IsLogoutButtonVisible = false;
 
                 // Perform logout
-                var logoutResponse = await vpnClient.Logout(this.carrier);
+                var logoutResponse = await this.vpnClient.Logout(this.carrier).ConfigureAwait(false);
 
                 // Check whether logout was successful
                 if (!logoutResponse.IsSuccess)
@@ -868,10 +674,9 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 this.AccessToken = string.Empty;
                 this.VpnIp = string.Empty;
                 this.Password = string.Empty;
-                this.RemainingTrafficResponse = String.Empty;
+                this.RemainingTrafficResponse = string.Empty;
 
                 // Work with UI
-                this.InitializeCountriesList();
                 this.SetStatusLoggedOut();
             }
             catch (Exception e)
@@ -927,8 +732,8 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         /// <param name="vpnStatisticsChangedEventArgs">Event arguments (bytes sent/received).</param>
         private void VpnClientOnStatisticsChanged(object sender, VpnStatisticsChangedEventArgs vpnStatisticsChangedEventArgs)
         {
-            this.BytesReceived = vpnStatisticsChangedEventArgs.Data.BytesReceived.ToString();
-            this.BytesSent = vpnStatisticsChangedEventArgs.Data.BytesSent.ToString();
+            this.BytesReceived = vpnStatisticsChangedEventArgs.Data.BytesReceived.ToString(CultureInfo.InvariantCulture);
+            this.BytesSent = vpnStatisticsChangedEventArgs.Data.BytesSent.ToString(CultureInfo.InvariantCulture);
         }
 
         /// <summary>
@@ -951,7 +756,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Performs actions related to setting backend status to "Logged out"
+        /// Performs actions related to setting backend status to "Logged out".
         /// </summary>
         private void SetStatusLoggedOut()
         {
@@ -961,7 +766,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Performs actions related to setting backend status to "Logged in"
+        /// Performs actions related to setting backend status to "Logged in".
         /// </summary>
         private void SetStatusLoggedIn()
         {
@@ -984,49 +789,23 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
         }
 
         /// <summary>
-        /// Checks if Windows service with supplied name exists.
-        /// </summary>
-        /// <param name="name">Name of Windows service</param>
-        /// <returns>true if Windows service with supplied name exists, otherwise false.</returns>
-        private bool IsServiceExists(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return false;
-            }
-
-            using (var controller = new ServiceController(name))
-            {
-                try
-                {
-                    var controllerStatus = controller.Status;
-                }
-                catch
-                {
-                    return false;
-                }
-                return true;
-            }
-        }
-
-        /// <summary>
         /// Bootstraps VPN according to the selected parameters and initializes VPN events.
         /// </summary>
         private void BootstrapVpn()
         {
             // Get bypass domains list
-            var bypass = BypassDomains.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var bypass = this.BypassDomains.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-            // Bootstrap hydra backend with provided CarrierId and BackendUrl
-            var backendConfiguration = new BackendServerConfiguration(this.CarrierId, this.BackendUrl, this.DeviceId);
-            var hydraConfiguration = new HydraWindowsConfiguration(serviceName, new Dictionary<int, IConnectionRule>()).AddBypassDomains(bypass);
-            //.SetReconnectOnWakeUp(this.ReconnectOnWakeUp);
+            // Bootstrap hydra backend with provided CarrierId and BackendAddress
+            var backendConfiguration = new BackendServerConfiguration(this.CarrierId, this.BackendAddress, this.DeviceId);
+            var hydraConfiguration = new HydraWindowsConfiguration(this.serviceName, new Dictionary<int, IConnectionRule>()).AddBypassDomains(bypass);
 
+            // .SetReconnectOnWakeUp(this.ReconnectOnWakeUp);
             var hydraBootstrapper = new HydraWindowsBootstrapper();
             hydraBootstrapper.Bootstrap(backendConfiguration, hydraConfiguration);
 
             this.vpnClient = HydraIoc.Container.Resolve<IHydraSdk>();
-            InitializeEvents();
+            this.InitializeEvents();
         }
 
         /// <summary>
@@ -1055,7 +834,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             try
             {
                 // Disconnect VPN
-                await this.vpnClient.StopVpn();
+                await this.vpnClient.StopVpn().ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -1080,11 +859,11 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             }
 
             // Update remaining traffic
-            await this.UpdateRemainingTraffic();
+            await this.UpdateRemainingTraffic().ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Performs update of remaining traffic
+        /// Performs update of remaining traffic.
         /// </summary>
         private async Task UpdateRemainingTraffic()
         {
@@ -1097,7 +876,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
                 }
 
                 // Get remaining traffic
-                var remainingTrafficResponseResult = await vpnClient.GetRemainingTraffic(this.carrier);
+                var remainingTrafficResponseResult = await this.vpnClient.GetRemainingTraffic(this.carrier).ConfigureAwait(false);
 
                 // Check whether request was successful
                 if (!remainingTrafficResponseResult.IsSuccess)
@@ -1113,6 +892,7 @@ namespace Hydra.Sdk.Wpf.ViewModel.Control
             }
             catch (Exception e)
             {
+                HydraLogger.Trace(e.Message);
             }
         }
     }

@@ -1,4 +1,8 @@
-﻿namespace Hydra.Sdk.Wpf.ViewModel
+﻿// <copyright file="InstallingWindowViewModel.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf.ViewModel
 {
     using System;
     using System.Threading.Tasks;
@@ -15,7 +19,7 @@
         private string component;
 
         /// <summary>
-        /// Installing component title.
+        /// Gets or sets installing component title.
         /// </summary>
         public string Component
         {
@@ -24,7 +28,7 @@
         }
 
         /// <summary>
-        /// Current executing action
+        /// Gets or sets current executing action.
         /// </summary>
         public Func<Task> CurrentAction { get; set; }
     }

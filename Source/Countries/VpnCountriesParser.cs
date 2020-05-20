@@ -1,31 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Resources;
-using System.Text;
-using System.Threading.Tasks;
-using Hydra.Sdk.Wpf.Model;
-using Hydra.Sdk.Wpf.Properties;
-using PartnerApi.Model.Nodes;
+﻿// <copyright file="VpnCountriesParser.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
 
 namespace Hydra.Sdk.Wpf.Countries
 {
-    public class VpnCountriesParser
+    using System;
+    using System.Globalization;
+    using System.Resources;
+    using Hydra.Sdk.Wpf.Model;
+    using Hydra.Sdk.Wpf.Properties;
+    using PartnerApi.Model.Nodes;
+
+    /// <summary>
+    /// The Vpn Countries Parser.
+    /// </summary>
+    public static class VpnCountriesParser
     {
-        private const int MaxCountryNameLength = 15;
-        private static readonly ResourceManager CountriesResourceManager;
-
-        static VpnCountriesParser()
-        {
-            CountriesResourceManager = new ResourceManager(typeof(Resources));
-        }
-
-        /// <inheritdoc />
-        public string ToCountryName(VpnNode vpnNode)
-        {
-            var finalName = GetFullName(vpnNode);
-            return finalName;
-        }
+        private static readonly ResourceManager CountriesResourceManager = new ResourceManager(typeof(Resources));
 
         /// <summary>
         /// The to vpn country.
@@ -37,7 +28,7 @@ namespace Hydra.Sdk.Wpf.Countries
         /// The <see cref="VpnNodeModel"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException" >rises ArgumentNullException.</exception>
-        public VpnNodeModel ToVpnNodeModel(VpnNode vpnNode)
+        public static VpnNodeModel ToVpnNodeModel(VpnNode vpnNode)
         {
             if (vpnNode == null)
             {
@@ -45,14 +36,10 @@ namespace Hydra.Sdk.Wpf.Countries
             }
 
             var fullName = GetFullName(vpnNode);
-            var carrierReduceName = vpnNode.Carrier?.Name;
-            return new VpnNodeModel()
+            return new VpnNodeModel
             {
                 ServerModel = vpnNode,
                 DisplayName = fullName,
-                FullName = fullName,
-                IsToolTipVisible = fullName.Length > MaxCountryNameLength,
-                CarrierDisplayName = carrierReduceName,
             };
         }
 
@@ -63,7 +50,7 @@ namespace Hydra.Sdk.Wpf.Countries
                 return string.Empty;
             }
 
-            var isoName = CountriesResourceManager.GetString(vpnNode.ServerRepresentation.ToUpperInvariant());
+            var isoName = CountriesResourceManager.GetString(vpnNode.ServerRepresentation.ToUpperInvariant(), CultureInfo.InvariantCulture);
 
             var finalName = string.IsNullOrEmpty(isoName) ? vpnNode.ServerRepresentation : isoName;
 

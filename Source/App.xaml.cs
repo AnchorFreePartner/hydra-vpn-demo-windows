@@ -1,4 +1,8 @@
-﻿namespace Hydra.Sdk.Wpf
+﻿// <copyright file="App.xaml.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf
 {
     using System;
     using System.Windows;
@@ -13,7 +17,7 @@
         {
             base.OnStartup(e);
 
-            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+            AppDomain.CurrentDomain.UnhandledException += this.UnhandledExceptionHandler;
 
             var bootstrapper = new Bootstrapper();
             bootstrapper.Run();

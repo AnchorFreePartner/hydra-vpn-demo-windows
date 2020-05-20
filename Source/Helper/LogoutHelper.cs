@@ -1,20 +1,21 @@
-﻿using Hydra.Sdk.Windows.IoC;
-using PartnerApi;
-using PartnerApi.Parameters;
+﻿// <copyright file="LogoutHelper.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
 
 namespace Hydra.Sdk.Wpf.Helper
 {
-    using System;
     using System.Threading.Tasks;
-
+    using Hydra.Sdk.Windows.IoC;
+    using PartnerApi;
+    using PartnerApi.Parameters;
 
     /// <summary>
     /// Logout related properties and methods.
     /// </summary>
-    public static class LogoutHelper
+    internal static class LogoutHelper
     {
         /// <summary>
-        /// Access token to perform logout with.
+        /// Sets access token to perform logout with.
         /// </summary>
         public static string AccessToken { private get; set; }
 
@@ -28,8 +29,9 @@ namespace Hydra.Sdk.Wpf.Helper
                 // Resolve backend service
                 var partnerBackendService = HydraIoc.Container.Resolve<IBackendService>();
                 var logoutParams = new LogoutParams(AccessToken);
+
                 // Logout from backend
-                await partnerBackendService.LogoutAsync(logoutParams);
+                await partnerBackendService.LogoutAsync(logoutParams).ConfigureAwait(false);
             }
             catch
             {

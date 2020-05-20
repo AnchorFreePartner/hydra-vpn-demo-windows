@@ -1,8 +1,10 @@
-﻿using System;
-using Hydra.Sdk.Windows.Logger;
+﻿// <copyright file="ServiceHelper.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
 
 namespace Hydra.Sdk.Wpf.Helper
 {
+    using System;
     using System.Diagnostics;
     using System.IO;
     using System.Management;
@@ -10,6 +12,7 @@ namespace Hydra.Sdk.Wpf.Helper
     using System.Security.Cryptography;
     using System.ServiceProcess;
     using System.Threading.Tasks;
+    using Hydra.Sdk.Windows.Logger;
 
     /// <summary>
     /// Service helper methods.
@@ -45,8 +48,17 @@ namespace Hydra.Sdk.Wpf.Helper
                     return false;
                 }
 
-                return await IsServiceUpToDate();
+                return await IsServiceUpToDate().ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// Performs hydra service installation.
+        /// </summary>
+        /// <returns>true if istallation was successful, false otherwise.</returns>
+        public static async Task<bool> InstallService()
+        {
+            return await RunServiceInstaller("install").ConfigureAwait(false);
         }
 
         /// <summary>
@@ -58,7 +70,7 @@ namespace Hydra.Sdk.Wpf.Helper
             var servicePath = GetServicePath(ServiceName);
             if (string.IsNullOrWhiteSpace(servicePath))
             {
-                await UninstallService();
+                await UninstallService().ConfigureAwait(false);
                 return false;
             }
 
@@ -79,9 +91,9 @@ namespace Hydra.Sdk.Wpf.Helper
             var installedServiceHash = CalculateFileHash(servicePath);
             var currentServiceHash = CalculateFileHash(currentServicePath);
 
-            if (!string.Equals(installedServiceHash, currentServiceHash))
+            if (!string.Equals(installedServiceHash, currentServiceHash, StringComparison.Ordinal))
             {
-                await UninstallService();
+                await UninstallService().ConfigureAwait(false);
                 return false;
             }
 
@@ -94,10 +106,14 @@ namespace Hydra.Sdk.Wpf.Helper
             {
                 using (var stream = File.Open(path, FileMode.Open, FileAccess.Read))
                 {
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
                     using (var md5 = MD5.Create())
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
                     {
                         var hash = md5.ComputeHash(stream);
-                        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant(); ;
+#pragma warning disable CA1308 // Normalize strings to uppercase
+                        return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
                     }
                 }
             }
@@ -110,25 +126,18 @@ namespace Hydra.Sdk.Wpf.Helper
         private static string GetServicePath(string path)
         {
             var query = new WqlObjectQuery($"SELECT * FROM Win32_Service WHERE Name = '{path}'");
-            var searcher = new ManagementObjectSearcher(query);
-            var resultCollection = searcher.Get();
-
-            foreach (var result in resultCollection)
+            using (var searcher = new ManagementObjectSearcher(query))
             {
-                var resultPath = result.GetPropertyValue("PathName").ToString();
-                return resultPath.Substring(1, resultPath.Length - 2);  // Remove quotes
+                var resultCollection = searcher.Get();
+
+                foreach (var result in resultCollection)
+                {
+                    var resultPath = result.GetPropertyValue("PathName").ToString();
+                    return resultPath.Substring(1, resultPath.Length - 2);  // Remove quotes
+                }
+
+                return null;
             }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Performs hydra service installation.
-        /// </summary>
-        /// <returns>true if istallation was successful, false otherwise.</returns>
-        public static async Task<bool> InstallService()
-        {
-            return await RunServiceInstaller("install");
         }
 
         /// <summary>
@@ -137,14 +146,14 @@ namespace Hydra.Sdk.Wpf.Helper
         /// <returns>true if istallation was successful, false otherwise.</returns>
         private static async Task<bool> UninstallService()
         {
-            return await RunServiceInstaller("uninstall");
+            return await RunServiceInstaller("uninstall").ConfigureAwait(false);
         }
 
         /// <summary>
         /// Runs hydra service installer.
         /// </summary>
         /// <param name="verb">One of the following: "install", "uninstall".</param>
-        /// <returns>true if the process was successful</returns>
+        /// <returns>true if the process was successful.</returns>
         private static async Task<bool> RunServiceInstaller(string verb)
         {
             return await Task.Factory.StartNew(() =>
@@ -160,7 +169,7 @@ namespace Hydra.Sdk.Wpf.Helper
                         Verb = "runas",
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
-                        RedirectStandardError = true
+                        RedirectStandardError = true,
                     };
 
                     var installerProcess = Process.Start(processStartInfo);
@@ -173,7 +182,7 @@ namespace Hydra.Sdk.Wpf.Helper
                     HydraLogger.Error("Could not install hydra service: {0}", e);
                     return false;
                 }
-            });
+            }).ConfigureAwait(false);
         }
     }
 }

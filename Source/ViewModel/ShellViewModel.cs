@@ -1,4 +1,8 @@
-﻿namespace Hydra.Sdk.Wpf.ViewModel
+﻿// <copyright file="ShellViewModel.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf.ViewModel
 {
     using Prism.Mvvm;
 

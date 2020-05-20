@@ -19,10 +19,10 @@
         </Grid.RowDefinitions>
 
         <Grid.Resources>
-            <converter:CollapsedConverter x:Key="BoolToCollapsed" />
+			<converter:CollapsedConverter x:Key="BoolToCollapsed" />
             <converter:InvertCollapsedConverter x:Key="BoolToCollapsedInvert" />
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
-            <converter:InvertBoolean x:Key="InvertBoolean" />
+            <converter:InvertBooleanConverter x:Key="InvertBoolean" />
         </Grid.Resources>
 
         <!-- DEVICE ID -->

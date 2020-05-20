@@ -1,9 +1,11 @@
-﻿namespace Hydra.Sdk.Wpf.Control
+﻿// <copyright file="MainScreen.xaml.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf.Control
 {
     using System.Windows.Controls;
-
     using Hydra.Sdk.Wpf.ViewModel.Control;
-
     using Microsoft.Practices.Unity;
 
     /// <summary>
@@ -12,6 +14,7 @@
     public partial class MainScreen : UserControl
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="MainScreen"/> class.
         /// <see cref="MainScreen"/> default constructor.
         /// </summary>
         public MainScreen()
@@ -20,7 +23,7 @@
         }
 
         /// <summary>
-        /// Main screen view model (<see cref="MainScreenViewModel"/>, injected).
+        /// Gets or sets main screen view model (<see cref="MainScreenViewModel"/>, injected).
         /// </summary>
         [Dependency]
         public MainScreenViewModel MainScreenViewModel
