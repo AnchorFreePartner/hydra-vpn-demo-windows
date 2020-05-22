@@ -1,8 +1,12 @@
-﻿namespace Hydra.Sdk.Wpf.View
+﻿// <copyright file="InstallingWindow.xaml.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf.View
 {
     using System.Windows;
+    using Hydra.Sdk.Wpf.ViewModel;
     using Microsoft.Practices.Unity;
-    using ViewModel;
 
     /// <summary>
     /// Installing component window.
@@ -10,15 +14,16 @@
     public partial class InstallingWindow : Window
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="InstallingWindow"/> class.
         /// <see cref="InstallingWindow"/> default constructor.
         /// </summary>
         public InstallingWindow()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
 
         /// <summary>
-        /// Installing window view model (injected).
+        /// Gets or sets installing window view model (injected).
         /// </summary>
         [Dependency]
         public InstallingWindowViewModel InstallingWindowViewModel
@@ -29,10 +34,10 @@
 
         /// <summary>
         /// Installing window loaded event handler.
-        /// </summary>        
+        /// </summary>
         private async void InstallingWindowOnLoaded(object sender, RoutedEventArgs e)
         {
-            await this.InstallingWindowViewModel.CurrentAction.Invoke();
+            await this.InstallingWindowViewModel.CurrentAction.Invoke().ConfigureAwait(false);
             this.Close();
         }
     }

@@ -1,7 +1,10 @@
-﻿namespace Hydra.Sdk.Wpf.Helper
+﻿// <copyright file="RegistryHelper.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf.Helper
 {
     using System;
-
     using Microsoft.Win32;
 
     /// <summary>
@@ -15,9 +18,13 @@
         /// <returns>Machine GUID.</returns>
         internal static string GetMachineGuid()
         {
-            var localKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32);
-            var openSubKey = localKey.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography");
-            return (string)openSubKey.GetValue("MachineGuid");
+            using (var localKey = RegistryKey.OpenBaseKey(
+                RegistryHive.LocalMachine,
+                Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32))
+            {
+                var openSubKey = localKey.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography");
+                return (string)openSubKey?.GetValue("MachineGuid");
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
-﻿
-
-
-using Hydra.Sdk.Windows.Logger;
+﻿// <copyright file="DriverHelper.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
 
 namespace Hydra.Sdk.Wpf.Helper
 {
@@ -10,6 +9,7 @@ namespace Hydra.Sdk.Wpf.Helper
     using System.IO;
     using System.ServiceProcess;
     using System.Threading.Tasks;
+    using Hydra.Sdk.Windows.Logger;
 
     /// <summary>
     /// Driver helper methods.
@@ -95,7 +95,7 @@ namespace Hydra.Sdk.Wpf.Helper
                         Verb = "runas",
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
-                        RedirectStandardError = true
+                        RedirectStandardError = true,
                     };
 
                     var installerProcess = Process.Start(processStartInfo);
@@ -108,7 +108,7 @@ namespace Hydra.Sdk.Wpf.Helper
                     HydraLogger.Error("Could not install TAP driver: {0}", e);
                     return false;
                 }
-            });
+            }).ConfigureAwait(false);
         }
     }
 }

@@ -1,4 +1,10 @@
-﻿using System.Reflection;
+﻿// <copyright file="AssemblyInfo.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+using System;
+using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 using System.Windows;
 
@@ -23,3 +29,5 @@ using System.Windows;
 [assembly: AssemblyDescription("Hydra SDK WPF demo application")]
 
 [assembly: ThemeInfo(ResourceDictionaryLocation.None, ResourceDictionaryLocation.SourceAssembly)]
+[assembly: CLSCompliant(false)]
+[assembly: NeutralResourcesLanguage("en")]

@@ -1,4 +1,8 @@
-﻿namespace Hydra.Sdk.Wpf.Logger
+﻿// <copyright file="LogEntryArrivedEventArgs.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf.Logger
 {
     using System;
 
@@ -8,11 +12,7 @@
     internal class LogEntryArrivedEventArgs : EventArgs
     {
         /// <summary>
-        /// Log entry message.
-        /// </summary>
-        public string Entry { get; }
-
-        /// <summary>
+        /// Initializes a new instance of the <see cref="LogEntryArrivedEventArgs"/> class.
         /// <see cref="LogEntryArrivedEventArgs"/> constructor.
         /// </summary>
         /// <param name="entry">Log entry message.</param>
@@ -20,5 +20,10 @@
         {
             this.Entry = entry;
         }
+
+        /// <summary>
+        /// Gets log entry message.
+        /// </summary>
+        public string Entry { get; }
     }
 }

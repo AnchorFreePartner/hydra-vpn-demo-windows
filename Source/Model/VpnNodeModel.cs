@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PartnerApi.Model.Nodes;
+﻿// <copyright file="VpnNodeModel.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
 
 namespace Hydra.Sdk.Wpf.Model
 {
+    using PartnerApi.Model.Nodes;
+
     /// <summary>
     ///  The VpnNodeModel model. It describes objects, which contain required for the vpn connection info.
     /// </summary>
@@ -29,40 +28,5 @@ namespace Hydra.Sdk.Wpf.Model
         /// Gets or sets display name for a virtual location.
         /// </summary>
         public string DisplayName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the full country name, before reducing.
-        /// </summary>
-        public string FullName { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether is tool tip visible. Is ToolTip visible for country.
-        /// </summary>
-        public bool IsToolTipVisible { get; set; }
-
-        /// <summary>
-        /// Gets or sets the country flag image.
-        /// </summary>
-        public string CountryImage { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether a value indicating the visibility mark of country flag image.
-        /// </summary>
-        public bool IsCountryImageVisible { get; set; }
-
-        /// <summary>
-        /// Gets the carrier id.
-        /// </summary>
-        public string CarrierId => this.ServerModel.Carrier.Id;
-
-        /// <summary>
-        /// Gets the carrier name.
-        /// </summary>
-        public string CarrierName => this.ServerModel.Carrier.Name;
-
-        /// <summary>
-        /// Gets or sets the carrier display name.
-        /// </summary>
-        public string CarrierDisplayName { get; set; }
     }
 }

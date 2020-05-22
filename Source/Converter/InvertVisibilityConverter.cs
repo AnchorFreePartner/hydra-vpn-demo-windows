@@ -1,4 +1,8 @@
-﻿namespace Hydra.Sdk.Wpf.Converter
+﻿// <copyright file="InvertVisibilityConverter.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf.Converter
 {
     using System;
     using System.Globalization;
@@ -11,12 +15,14 @@
     [ValueConversion(typeof(bool), typeof(Visibility))]
     public class InvertVisibilityConverter : IValueConverter
     {
+        /// <inheritdoc />
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var original = (bool)value;
             return original ? Visibility.Hidden : Visibility.Visible;
         }
 
+        /// <inheritdoc />
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var original = (Visibility)value;

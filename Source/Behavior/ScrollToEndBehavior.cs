@@ -1,4 +1,8 @@
-﻿namespace Hydra.Sdk.Wpf.Behavior
+﻿// <copyright file="ScrollToEndBehavior.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
+
+namespace Hydra.Sdk.Wpf.Behavior
 {
     using System.Windows;
     using System.Windows.Controls;
@@ -16,8 +20,7 @@
                 "AlwaysScrollToEnd",
                 typeof(bool),
                 typeof(ScrollToEndBehavior),
-                new UIPropertyMetadata(false, OnAlwaysScrollToEndChanged)
-            );
+                new UIPropertyMetadata(false, OnAlwaysScrollToEndChanged));
 
         /// <summary>
         /// Gets <see cref="AlwaysScrollToEndProperty"/> value for supplied <see cref="DependencyObject"/>.
@@ -26,7 +29,7 @@
         /// <returns>Value of <see cref="AlwaysScrollToEndProperty"/>.</returns>
         public static bool GetAlwaysScrollToEnd(DependencyObject dependencyObject)
         {
-            return (bool) dependencyObject.GetValue(AlwaysScrollToEndProperty);
+            return (bool)dependencyObject.GetValue(AlwaysScrollToEndProperty);
         }
 
         /// <summary>
@@ -50,17 +53,17 @@
             var textBox = dependencyObject as TextBox;
 
             // Get new property value
-            var newValue = (bool) e.NewValue;
+            var newValue = (bool)e.NewValue;
 
             // Check above values for sanity
-            if (textBox == null || (bool) e.OldValue == newValue)
+            if (textBox == null || (bool)e.OldValue == newValue)
             {
                 return;
             }
 
             // Create event handler which scrolls to end event sender
             TextChangedEventHandler handler = (sender, args) =>
-                ((TextBox) sender).ScrollToEnd();
+                ((TextBox)sender).ScrollToEnd();
 
             // If AlwaysScrollToEnd is true - attach handler, otherwise detach handler
             if (newValue)

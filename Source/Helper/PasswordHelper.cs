@@ -1,23 +1,33 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿// <copyright file="PasswordHelper.cs" company="AnchorFree Inc.">
+// Copyright (c) AnchorFree Inc. All rights reserved.
+// </copyright>
 
 namespace Hydra.Sdk.Wpf.Helper
 {
+    using System.Windows;
+    using System.Windows.Controls;
+
     internal static class PasswordHelper
     {
         public static readonly DependencyProperty PasswordProperty =
-            DependencyProperty.RegisterAttached("Password",
-                typeof(string), typeof(PasswordHelper),
+            DependencyProperty.RegisterAttached(
+                "Password",
+                typeof(string),
+                typeof(PasswordHelper),
                 new FrameworkPropertyMetadata(string.Empty, OnPasswordPropertyChanged));
 
         public static readonly DependencyProperty AttachProperty =
-            DependencyProperty.RegisterAttached("Attach",
-                typeof(bool), typeof(PasswordHelper), new PropertyMetadata(false, Attach));
+            DependencyProperty.RegisterAttached(
+                "Attach",
+                typeof(bool),
+                typeof(PasswordHelper),
+                new PropertyMetadata(false, Attach));
 
         private static readonly DependencyProperty IsUpdatingProperty =
-            DependencyProperty.RegisterAttached("IsUpdating", typeof(bool),
+            DependencyProperty.RegisterAttached(
+                "IsUpdating",
+                typeof(bool),
                 typeof(PasswordHelper));
-
 
         public static void SetAttach(DependencyObject dp, bool value)
         {
@@ -49,7 +59,8 @@ namespace Hydra.Sdk.Wpf.Helper
             dp.SetValue(IsUpdatingProperty, value);
         }
 
-        private static void OnPasswordPropertyChanged(DependencyObject sender,
+        private static void OnPasswordPropertyChanged(
+            DependencyObject sender,
             DependencyPropertyChangedEventArgs e)
         {
             PasswordBox passwordBox = sender as PasswordBox;
@@ -59,16 +70,20 @@ namespace Hydra.Sdk.Wpf.Helper
             {
                 passwordBox.Password = (string)e.NewValue;
             }
+
             passwordBox.PasswordChanged += PasswordChanged;
         }
 
-        private static void Attach(DependencyObject sender,
+        private static void Attach(
+            DependencyObject sender,
             DependencyPropertyChangedEventArgs e)
         {
             PasswordBox passwordBox = sender as PasswordBox;
 
             if (passwordBox == null)
+            {
                 return;
+            }
 
             if ((bool)e.OldValue)
             {
@@ -89,5 +104,4 @@ namespace Hydra.Sdk.Wpf.Helper
             SetIsUpdating(passwordBox, false);
         }
     }
-
 }
