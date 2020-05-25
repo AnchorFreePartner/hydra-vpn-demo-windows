@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?include Variables.wxi?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+	<Product
+    Language="1033"
+    Id="$(var.ProductCode)"
+    Name="$(var.ProductName)"
+    Version="$(var.ProductVersion)"
+    Manufacturer="$(var.Manufacturer)"
+    UpgradeCode="$(var.UpgradeCode)">
+
+		<Package InstallerVersion="300" Compressed="yes" InstallScope="perMachine" />
+		<MediaTemplate EmbedCab="yes" />
+		<MajorUpgrade DowngradeErrorMessage="A newer version of $(var.ProductName) is already installed."  />
+		<Condition Message="A later version of [ProductName] is already installed.">NOT NEWERVERSIONDETECTED</Condition>
+
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLLOCATION" Name="$(var.ProductName)">
+					<Directory Id="SERVICELOCATION" Name="Service" />
+					<Directory Id="DRIVER32LOCATION" Name="x32" />
+					<Directory Id="DRIVER64LOCATION" Name="x64" />
+
+					<Component Id="ProductComponent" Guid="E392D694-E45D-41AB-BBB5-FEF2E9AEA5E4">
+						<RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+					</Component>
+
+				</Directory>
+			</Directory>
+		</Directory>
+
+		<DirectoryRef Id="DRIVER32LOCATION">
+			<Component Id="x32DriverComponent" Guid="F54F798A-44DB-46C0-8CF0-4B45BC52AE98" KeyPath="yes">
+				<File Id="AFTap.inf_x32" Source="..\..\TapDriver\x32\AFTap.inf" Checksum="yes" />
+				<File Id="aftap0901.cat_x32" Source="..\..\TapDriver\x32\aftap0901.cat" Checksum="yes" />
+				<File Id="aftap0901.sys_x32" Source="..\..\TapDriver\x32\aftap0901.sys" Checksum="yes" />
+				<File Id="tapinstall.exe_x32" Source="..\..\TapDriver\x32\tapinstall.exe" Checksum="yes" />
+			</Component>
+		</DirectoryRef>
+
+		<DirectoryRef Id="DRIVER64LOCATION">
+			<Component Id="x64DriverComponent" Guid="CDBC3A2D-A106-4DC5-B9CC-1C6B92546021" KeyPath="yes">
+				<File Id="AFTap.inf_x64" Source="..\..\TapDriver\x64\AFTap.inf" Checksum="yes" />
+				<File Id="aftap0901.cat_x64" Source="..\..\TapDriver\x64\aftap0901.cat" Checksum="yes" />
+				<File Id="aftap0901.sys_x64" Source="..\..\TapDriver\x64\aftap0901.sys" Checksum="yes" />
+				<File Id="tapinstall.exe_x64" Source="..\..\TapDriver\x64\tapinstall.exe" Checksum="yes" />
+			</Component>
+		</DirectoryRef>
+
+		<DirectoryRef Id="SERVICELOCATION">
+			<Component Id="ServiceComponent" Guid="3B2F583A-3C96-440B-8D59-61D00A9D8E44" KeyPath="yes">
+				<File Source="..\..\Service\Hydra.Sdk.Windows.Service.exe" Checksum="yes" />
+			</Component>
+		</DirectoryRef>
+
+		<DirectoryRef Id="INSTALLLOCATION">
+			<Component Id="ApplicationComponent" Guid="3728A452-CA48-4AE9-BE84-ED808806F7E9" KeyPath="yes">
+				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Demo.exe" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Demo.exe.config" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Windows.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.ServiceLocation.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.Unity.Configuration.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.Unity.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.Unity.RegistrationByConvention.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Prism.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Prism.Unity.Wpf.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Prism.Wpf.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\PartnerApi.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\RestSharp.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\SimpleWifi.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\System.Windows.Interactivity.dll" Checksum="yes" />
+				<File Id="Newtonsoft.Json.dll_app" Source="..\..\bin\$(var.AppPath)\Newtonsoft.Json.dll" Checksum="yes" />
+			</Component>
+		</DirectoryRef>
+
+		<CustomAction Id="RunServiceRegistration"
+                  Impersonate='no'
+                  Directory="SERVICELOCATION"
+                  ExeCommand="[SERVICELOCATION] -install &quot;CakeTube Demo Vpn Service&quot;"
+                  Execute="deferred"
+                  Return="check"/>
+
+		<CustomAction Id="RunServiceRemove"
+                  Impersonate='no'
+                  Directory="SERVICELOCATION"
+                  ExeCommand="[SERVICELOCATION] -uninstall &quot;CakeTube Demo Vpn Service&quot;"
+                  Execute="deferred"
+                  Return="check"/>
+
+		<CustomAction Id="InstallDriver64Property"
+                  Property="InstallDriver64"
+                  Execute="immediate"
+                  Value="&quot;[DRIVER64LOCATION]tapinstall.exe&quot; install &quot;[DRIVER64LOCATION]\AFTap.inf&quot; &quot;aftap0901&quot;" />
+
+		<CustomAction Id="InstallDriver64"
+                  BinaryKey="WixCA"
+                  DllEntry="CAQuietExec"
+                  Execute="deferred"
+                  Return="check"
+                  Impersonate="no"/>
+
+		<CustomAction Id="InstallDriver32Property"
+                  Property="InstallDriver32"
+                  Execute="immediate"
+                  Value="&quot;[DRIVER32LOCATION]tapinstall.exe&quot; install &quot;[DRIVER32LOCATION]\AFTap.inf&quot; &quot;aftap0901&quot;" />
+
+		<CustomAction Id="InstallDriver32"
+                  BinaryKey="WixCA"
+                  DllEntry="CAQuietExec"
+                  Execute="deferred"
+                  Return="check"
+                  Impersonate="no"/>
+
+		<CustomAction Id="UninstallDriver64Property"
+                  Property="UninstallDriver64"
+                  Execute="immediate"
+                  Value="&quot;[DRIVER64LOCATION]tapinstall.exe&quot; remove &quot;aftap0901&quot;" />
+
+		<CustomAction Id="UninstallDriver64"
+                  BinaryKey="WixCA"
+                  DllEntry="CAQuietExec"
+                  Execute="deferred"
+                  Return="check"
+                  Impersonate="no"/>
+
+		<CustomAction Id="UninstallDriver32Property"
+                  Property="UninstallDriver32"
+                  Execute="immediate"
+                  Value="&quot;[DRIVER32LOCATION]tapinstall.exe&quot; remove &quot;aftap0901&quot;" />
+
+		<CustomAction Id="UninstallDriver32"
+                  BinaryKey="WixCA"
+                  DllEntry="CAQuietExec"
+                  Execute="deferred"
+                  Return="check"
+                  Impersonate="no"/>
+
+		<Feature Id="ProductFeature" Title="$(var.ProductName)" Level="1">
+			<ComponentRef Id="ProductComponent" />
+			<ComponentRef Id="ApplicationComponent" />
+			<ComponentRef Id="x32DriverComponent"/>
+			<ComponentRef Id="x64DriverComponent"/>
+			<ComponentRef Id="ServiceComponent"/>
+		</Feature>
+
+		<InstallExecuteSequence>
+			<Custom Action="RunServiceRegistration" After="InstallFiles">NOT Installed AND NOT REMOVE</Custom>
+			<Custom Action="InstallDriver64Property" Before="InstallDriver64">NOT Installed AND NOT REMOVE AND <![CDATA[(VersionNT64)]]></Custom>
+			<Custom Action="InstallDriver64" After="RunServiceRegistration">NOT Installed AND NOT REMOVE AND <![CDATA[(VersionNT64)]]></Custom>
+			<Custom Action="InstallDriver32Property" Before="InstallDriver32">NOT Installed AND NOT REMOVE AND <![CDATA[NOT(VersionNT64)]]></Custom>
+			<Custom Action="InstallDriver32" After="RunServiceRegistration">NOT Installed AND NOT REMOVE AND <![CDATA[NOT(VersionNT64)]]></Custom>
+
+			<Custom Action="RunServiceRemove" Before="RemoveFiles">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")</Custom>
+			<Custom Action="UninstallDriver64Property" Before="UninstallDriver64">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL") AND <![CDATA[(VersionNT64)]]></Custom>
+			<Custom Action="UninstallDriver64" Before="RemoveFiles">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL") AND <![CDATA[(VersionNT64)]]></Custom>
+			<Custom Action="UninstallDriver32Property" Before="UninstallDriver32">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL") AND <![CDATA[NOT(VersionNT64)]]></Custom>
+			<Custom Action="UninstallDriver32" Before="RemoveFiles">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL") AND <![CDATA[NOT(VersionNT64)]]></Custom>
+		</InstallExecuteSequence>
+
+	</Product>
+
+</Wix>
