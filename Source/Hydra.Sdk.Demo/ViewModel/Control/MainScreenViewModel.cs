@@ -16,16 +16,16 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
     using System.Windows;
     using System.Windows.Input;
     using System.Windows.Threading;
-    using Hydra.Sdk.Common.IoC;
-    using Hydra.Sdk.Common.Logger;
     using Hydra.Sdk.Demo.Countries;
     using Hydra.Sdk.Demo.Helper;
     using Hydra.Sdk.Demo.Logger;
     using Hydra.Sdk.Demo.Model;
     using Hydra.Sdk.Demo.View;
     using Hydra.Sdk.Windows;
+    using Hydra.Sdk.Windows.Enum;
     using Hydra.Sdk.Windows.EventArgs;
     using Hydra.Sdk.Windows.IoC;
+    using Hydra.Sdk.Windows.Logger;
     using Hydra.Sdk.Windows.Misc;
     using Hydra.Sdk.Windows.Network.Rules;
     using Microsoft.Practices.ServiceLocation;
@@ -712,9 +712,9 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
         /// </summary>
         private void InitializeEvents()
         {
-            this.vpnClient.ConnectedChanged += (sender, args) =>
+            this.vpnClient.VpnConnectionStateChanged += (sender, args) =>
             {
-                if (args.Connected)
+                if (args.State == VpnConnectionState.Connected)
                 {
                     this.VpnClientOnConnected();
                 }
@@ -723,6 +723,7 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
                     this.VpnClientOnDisconnected();
                 }
             };
+
             this.vpnClient.StatisticsChanged += this.VpnClientOnStatisticsChanged;
         }
 

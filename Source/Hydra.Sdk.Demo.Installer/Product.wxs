@@ -45,29 +45,6 @@
 					</Directory>
 				</Directory>
 			</Directory>
-			<!--<Directory Id="UrlProtocol">
-				<Component Id="RegisterUrlProtocol" Guid="0EAEF442-1A69-4750-AA34-2AB703206436">
-					<RegistryKey Key="testapp\shell" Root="HKCR" ForceCreateOnInstall="yes" />
-					<RegistryKey Key="testapp\shell\open" Root="HKCR" ForceCreateOnInstall="yes" />
-					<RegistryKey Key="testapp\DefaultIcon" Root="HKCR">
-						<RegistryValue Value='"[#HydraSdkDemoExecutable]",0' Type="string" />
-					</RegistryKey>
-					<RegistryKey Key="testapp" Root="HKCR">
-						<RegistryValue Value="URL:Test App Protocol" Type="string" />
-						<RegistryValue Name="URL Protocol" Value="" Type="string" />
-					</RegistryKey>
-					<RegistryKey Key="testapp\shell\open\command" Root="HKCR">
-						<RegistryValue Value='"[#HydraSdkDemoExecutable]" "%1"' Type="string" />
-					</RegistryKey>
-				</Component>
-			</Directory>-->
-			<!--<Directory Id="InstallationPath">
-				<Component Id="RegisterInstallationPath" Guid="6BDE68B7-24B5-4C8E-B61A-5B06455F16DE">
-					<RegistryKey Key="Software\AnchorFree Inc.\TestApp" Root="HKLM">
-						<RegistryValue Name="path" Value='"[#HydraSdkDemoExecutable]"' Type='string' />
-					</RegistryKey>
-				</Component>
-			</Directory>-->
 		</Directory>
 
 		<DirectoryRef Id="DRIVER64FOLDER">
@@ -117,8 +94,6 @@
 				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Demo.exe" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Demo.exe.config" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Windows.dll" Checksum="yes" />
-				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Common.dll" Checksum="yes" />
-				<File Source="..\..\Service\Hydra.Sdk.Windows.Service.exe" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.ServiceLocation.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.Unity.Configuration.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.Unity.dll" Checksum="yes" />
@@ -131,6 +106,20 @@
 				<File Source="..\..\bin\$(var.AppPath)\SimpleWifi.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\System.Windows.Interactivity.dll" Checksum="yes" />
 				<File Id="Newtonsoft.Json.dll_app" Source="..\..\bin\$(var.AppPath)\Newtonsoft.Json.dll" Checksum="yes" />
+
+				<File Source="..\..\Service\afvpn.manifest" Checksum="yes" />
+				<File Source="..\..\Service\afvpn.tlb" Checksum="yes" />
+				<File Source="..\..\Service\Foundation.Annotations.dll" Checksum="yes" />
+				<File Source="..\..\Service\Foundation.Common.dll" Checksum="yes" />
+				<File Source="..\..\Service\Foundation.Extensions.dll" Checksum="yes" />
+				<File Source="..\..\Service\Foundation.ExtProc.Hydra.dll" Checksum="yes" />
+				<File Source="..\..\Service\Foundation.ExtProc.Hydra.ComTypes.dll" Checksum="yes" />
+				<File Source="..\..\Service\Hydra.Sdk.Windows.Service.exe" Checksum="yes" />
+				<File Source="..\..\Service\System.Collections.Immutable.dll" Checksum="yes" />
+				<File Source="..\..\Service\System.Runtime.CompilerServices.Unsafe.dll" Checksum="yes" />
+				<File Source="..\..\Service\System.Threading.Tasks.Extensions.dll" Checksum="yes" />
+				<File Source="..\..\Service\System.ValueTuple.dll" Checksum="yes" />
+				<File Source="..\..\Service\NLog.dll" Checksum="yes" />
 			</Component>
 		</DirectoryRef>
 

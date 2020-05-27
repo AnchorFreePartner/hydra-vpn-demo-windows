@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+
+  <file name="afvpn.tlb" hashalg="SHA1">
+    <typelib tlbid="{EA0CBC15-7C2E-4A29-B0EB-1712308AF433}" version="1.0" helpdir="" flags="HASDISKIMAGE" />
+  </file>
+  <comInterfaceExternalProxyStub name="ITunnelController" iid="{324E2731-295C-4659-B6A0-8A6875D9B358}" tlbid="{EA0CBC15-7C2E-4A29-B0EB-1712308AF433}" proxyStubClsid32="{00020424-0000-0000-C000-000000000046}" />
+  <comInterfaceExternalProxyStub name="ITunnelManager" iid="{E48DD85C-ED88-4958-B1F7-812A8F4121E6}" tlbid="{EA0CBC15-7C2E-4A29-B0EB-1712308AF433}" proxyStubClsid32="{00020424-0000-0000-C000-000000000046}" />
+
+</assembly>

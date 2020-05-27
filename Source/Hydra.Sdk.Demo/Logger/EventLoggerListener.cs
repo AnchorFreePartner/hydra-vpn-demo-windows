@@ -5,7 +5,7 @@
 namespace Hydra.Sdk.Demo.Logger
 {
     using System;
-    using Hydra.Sdk.Common.Logger;
+    using Hydra.Sdk.Windows.Logger;
 
     /// <summary>
     /// Event-based logger listener.
