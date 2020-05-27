@@ -1,65 +1,124 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?include Variables.wxi?>
 
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
 	<Product
-    Language="1033"
-    Id="$(var.ProductCode)"
-    Name="$(var.ProductName)"
-    Version="$(var.ProductVersion)"
-    Manufacturer="$(var.Manufacturer)"
-    UpgradeCode="$(var.UpgradeCode)">
+	  Language="1033"
+	  Id="$(var.ProductCode)"
+	  Name="$(var.ProductName)"
+	  Version="$(var.ProductVersion)"
+	  Manufacturer="$(var.Manufacturer)"
+	  UpgradeCode="$(var.UpgradeCode)">
 
 		<Package InstallerVersion="300" Compressed="yes" InstallScope="perMachine" />
-		<MediaTemplate EmbedCab="yes" />
-		<MajorUpgrade DowngradeErrorMessage="A newer version of $(var.ProductName) is already installed."  />
 		<Condition Message="A later version of [ProductName] is already installed.">NOT NEWERVERSIONDETECTED</Condition>
+		<MajorUpgrade DowngradeErrorMessage="A newer version of $(var.ProductName) is already installed." AllowSameVersionUpgrades="yes" />
+
+		<!--<PropertyRef Id="NETFRAMEWORK45"/>
+		<Condition Message="This application requires .NET Framework 4.5. Please install the .NET Framework then run this installer again.">
+			<![CDATA[NETFRAMEWORK45]]>
+		</Condition>-->
+
+		<MediaTemplate EmbedCab="yes"/>
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLLOCATION" Name="$(var.ProductName)">
-					<Directory Id="SERVICELOCATION" Name="Service" />
-					<Directory Id="DRIVER32LOCATION" Name="x32" />
-					<Directory Id="DRIVER64LOCATION" Name="x64" />
-
-					<Component Id="ProductComponent" Guid="E392D694-E45D-41AB-BBB5-FEF2E9AEA5E4">
-						<RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-					</Component>
-
+			<Directory Id="ProgramMenuFolder" Name="StartMenu">
+				<Component Id="ApplicationStartMenuShortcutComponent" Guid="638046F1-82C6-474B-AF9B-81C92DC295B0">
+					<RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.ProductName)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+				</Component>
+			</Directory>
+			<Directory Id="DesktopFolder" Name="Desktop">
+				<Component Id="ApplicationDesktopShortcutComponent" Guid="5425BEDB-E81A-485E-A962-508B032EA182">
+					<RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.ProductName)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+				</Component>
+			</Directory>
+			<Directory Id="$(var.PlatformInstallFolder)">
+				<Directory Id="INSTALLFOLDER" Name="$(var.ProductName)">
+					<Directory Id="DRIVERFOLDER" Name="Driver">
+						<Directory Id="DRIVER32FOLDER" Name="x32" />
+						<Directory Id="DRIVER64FOLDER" Name="x64" />
+					</Directory>
+					<Directory Id="HydraExecutableFolder" Name="HydraExecutable">
+						<Directory Id="x32bitFOLDER" Name="x32bit" />
+						<Directory Id="x64bitFOLDER" Name="x64bit" />
+					</Directory>
 				</Directory>
 			</Directory>
+			<!--<Directory Id="UrlProtocol">
+				<Component Id="RegisterUrlProtocol" Guid="0EAEF442-1A69-4750-AA34-2AB703206436">
+					<RegistryKey Key="testapp\shell" Root="HKCR" ForceCreateOnInstall="yes" />
+					<RegistryKey Key="testapp\shell\open" Root="HKCR" ForceCreateOnInstall="yes" />
+					<RegistryKey Key="testapp\DefaultIcon" Root="HKCR">
+						<RegistryValue Value='"[#HydraSdkDemoExecutable]",0' Type="string" />
+					</RegistryKey>
+					<RegistryKey Key="testapp" Root="HKCR">
+						<RegistryValue Value="URL:Test App Protocol" Type="string" />
+						<RegistryValue Name="URL Protocol" Value="" Type="string" />
+					</RegistryKey>
+					<RegistryKey Key="testapp\shell\open\command" Root="HKCR">
+						<RegistryValue Value='"[#HydraSdkDemoExecutable]" "%1"' Type="string" />
+					</RegistryKey>
+				</Component>
+			</Directory>-->
+			<!--<Directory Id="InstallationPath">
+				<Component Id="RegisterInstallationPath" Guid="6BDE68B7-24B5-4C8E-B61A-5B06455F16DE">
+					<RegistryKey Key="Software\AnchorFree Inc.\TestApp" Root="HKLM">
+						<RegistryValue Name="path" Value='"[#HydraSdkDemoExecutable]"' Type='string' />
+					</RegistryKey>
+				</Component>
+			</Directory>-->
 		</Directory>
 
-		<DirectoryRef Id="DRIVER32LOCATION">
-			<Component Id="x32DriverComponent" Guid="F54F798A-44DB-46C0-8CF0-4B45BC52AE98" KeyPath="yes">
-				<File Id="AFTap.inf_x32" Source="..\..\TapDriver\x32\AFTap.inf" Checksum="yes" />
-				<File Id="aftap0901.cat_x32" Source="..\..\TapDriver\x32\aftap0901.cat" Checksum="yes" />
-				<File Id="aftap0901.sys_x32" Source="..\..\TapDriver\x32\aftap0901.sys" Checksum="yes" />
-				<File Id="tapinstall.exe_x32" Source="..\..\TapDriver\x32\tapinstall.exe" Checksum="yes" />
+		<DirectoryRef Id="DRIVER64FOLDER">
+			<Component Id="Driver64Component" Guid="FAC8C3A0-EFA9-47EA-9044-743D080087EE" KeyPath="yes">
+				<File Id="tapinstall_exe_64" Source="../../TapDriver/x64/tapinstall.exe" Checksum="yes" />
+
+				<File Id="tap0901_cat_64" Source="../../TapDriver/x64/tap0901.cat" Checksum="yes" />
+				<File Id="tap_inf_64" Source="../../TapDriver/x64/OemVista.inf" Checksum="yes" />
+				<File Id="tap0901_sys_64" Source="../../TapDriver/x64/tap0901.sys" Checksum="yes" />
+
+				<File Id="aftap0901_cat_64" Source="../../TapDriver/x64/aftap0901.cat" Checksum="yes" />
+				<File Id="aftap_inf_64" Source="../../TapDriver/x64/AFTap.inf" Checksum="yes" />
+				<File Id="aftap0901_sys_64" Source="../../TapDriver/x64/aftap0901.sys" Checksum="yes" />
 			</Component>
 		</DirectoryRef>
 
-		<DirectoryRef Id="DRIVER64LOCATION">
-			<Component Id="x64DriverComponent" Guid="CDBC3A2D-A106-4DC5-B9CC-1C6B92546021" KeyPath="yes">
-				<File Id="AFTap.inf_x64" Source="..\..\TapDriver\x64\AFTap.inf" Checksum="yes" />
-				<File Id="aftap0901.cat_x64" Source="..\..\TapDriver\x64\aftap0901.cat" Checksum="yes" />
-				<File Id="aftap0901.sys_x64" Source="..\..\TapDriver\x64\aftap0901.sys" Checksum="yes" />
-				<File Id="tapinstall.exe_x64" Source="..\..\TapDriver\x64\tapinstall.exe" Checksum="yes" />
+		<DirectoryRef Id="DRIVER32FOLDER">
+			<Component Id="Driver32Component" Guid="74EA0AD9-204D-4E71-B732-1266C7850DA9" KeyPath="yes">
+				<File Id="tapinstall_exe_32" Source="../../TapDriver/x32/tapinstall.exe" Checksum="yes" />
+
+				<File Id="tap0901_cat_32" Source="../../TapDriver/x32/tap0901.cat" Checksum="yes" />
+				<File Id="tap_inf_32" Source="../../TapDriver/x32/OemVista.inf" Checksum="yes" />
+				<File Id="tap0901_sys_32" Source="../../TapDriver/x32/tap0901.sys" Checksum="yes" />
+
+				<File Id="aftap0901_cat_32" Source="../../TapDriver/x32/aftap0901.cat" Checksum="yes" />
+				<File Id="aftap_inf_32" Source="../../TapDriver/x32/AFTap.inf" Checksum="yes" />
+				<File Id="aftap0901_sys_32" Source="../../TapDriver/x32/aftap0901.sys" Checksum="yes" />
 			</Component>
 		</DirectoryRef>
 
-		<DirectoryRef Id="SERVICELOCATION">
-			<Component Id="ServiceComponent" Guid="3B2F583A-3C96-440B-8D59-61D00A9D8E44" KeyPath="yes">
-				<File Source="..\..\Service\Hydra.Sdk.Windows.Service.exe" Checksum="yes" />
+		<DirectoryRef Id="x32bitFOLDER">
+			<Component Id="x32bitComponent" Guid="2B10501F-9A1D-4EC2-A82B-82FBE469F87E" KeyPath="yes">
+				<File Source="../../HydraExecutable/x32bit/afvpn.dll" Id="afvpn_dll_x32"  Checksum="yes" />
+				<File Source="../../HydraExecutable/x32bit/hydra.exe" Id="hydra_exe_x32" Checksum="yes" />
 			</Component>
 		</DirectoryRef>
 
-		<DirectoryRef Id="INSTALLLOCATION">
-			<Component Id="ApplicationComponent" Guid="3728A452-CA48-4AE9-BE84-ED808806F7E9" KeyPath="yes">
+		<DirectoryRef Id="x64bitFOLDER">
+			<Component Id="x64bitComponent" Guid="F83AA51B-83AC-46F5-AEC2-148809C7AA71" KeyPath="yes">
+				<File Source="../../HydraExecutable/x64bit/afvpn.dll" Id="afvpn_dll_x64" Checksum="yes" />
+				<File Source="../../HydraExecutable/x64bit/hydra.exe" Id="hydra_exe_x64" Checksum="yes" />
+			</Component>
+		</DirectoryRef>
+
+		<DirectoryRef Id="INSTALLFOLDER">
+			<Component Id="ProductComponent" Guid="52CCBB48-0850-409E-9122-4B24F8301C6E" KeyPath="yes">
 				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Demo.exe" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Demo.exe.config" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Windows.dll" Checksum="yes" />
+				<File Source="..\..\bin\$(var.AppPath)\Hydra.Sdk.Common.dll" Checksum="yes" />
+				<File Source="..\..\Service\Hydra.Sdk.Windows.Service.exe" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.ServiceLocation.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.Unity.Configuration.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Microsoft.Practices.Unity.dll" Checksum="yes" />
@@ -76,89 +135,138 @@
 		</DirectoryRef>
 
 		<CustomAction Id="RunServiceRegistration"
-                  Impersonate='no'
-                  Directory="SERVICELOCATION"
-                  ExeCommand="[SERVICELOCATION] -install &quot;CakeTube Demo Vpn Service&quot;"
-                  Execute="deferred"
-                  Return="check"/>
+	                Impersonate='no'
+	                Directory="INSTALLFOLDER"
+	                ExeCommand="&quot;[INSTALLFOLDER]Hydra.Sdk.Windows.Service.exe&quot; -install &quot;Hydra Sdk Demo Vpn Service&quot;"
+	                Execute="deferred"
+	                Return="check"/>
 
 		<CustomAction Id="RunServiceRemove"
+	                Impersonate='no'
+	                Directory="INSTALLFOLDER"
+	                ExeCommand="&quot;[INSTALLFOLDER]Hydra.Sdk.Windows.Service.exe&quot; -uninstall &quot;Hydra Sdk Demo Vpn Service&quot;"
+	                Execute="deferred"
+	                Return="check"/>
+
+		<SetProperty Id="RunDriver64Install"
+                 Value="&quot;[DRIVER64FOLDER]tapinstall.exe&quot; install &quot;[DRIVER64FOLDER]\AFTap.inf&quot; &quot;aftap0901&quot;"
+                 Before="RunDriver64Install"
+                 Sequence="execute"/>
+		<CustomAction Id="RunDriver64Install"
+                  BinaryKey="WixCA"
+                  DllEntry="WixQuietExec"
                   Impersonate='no'
-                  Directory="SERVICELOCATION"
-                  ExeCommand="[SERVICELOCATION] -uninstall &quot;CakeTube Demo Vpn Service&quot;"
                   Execute="deferred"
                   Return="check"/>
 
-		<CustomAction Id="InstallDriver64Property"
-                  Property="InstallDriver64"
-                  Execute="immediate"
-                  Value="&quot;[DRIVER64LOCATION]tapinstall.exe&quot; install &quot;[DRIVER64LOCATION]\AFTap.inf&quot; &quot;aftap0901&quot;" />
-
-		<CustomAction Id="InstallDriver64"
+		<SetProperty Id="RunDriver64Uninstall"
+                 Value="&quot;[DRIVER64FOLDER]tapinstall.exe&quot; remove aftap0901"
+                 Before="RunDriver64Uninstall"
+                 Sequence="execute"/>
+		<CustomAction Id="RunDriver64Uninstall"
                   BinaryKey="WixCA"
-                  DllEntry="CAQuietExec"
+                  DllEntry="WixQuietExec"
+                  Impersonate='no'
                   Execute="deferred"
-                  Return="check"
-                  Impersonate="no"/>
+                  Return="check"/>
 
-		<CustomAction Id="InstallDriver32Property"
-                  Property="InstallDriver32"
-                  Execute="immediate"
-                  Value="&quot;[DRIVER32LOCATION]tapinstall.exe&quot; install &quot;[DRIVER32LOCATION]\AFTap.inf&quot; &quot;aftap0901&quot;" />
+		<SetProperty Id="RunDriverWin10x64Install"
+	               Value="&quot;[DRIVER64FOLDER]tapinstall.exe&quot; install &quot;[DRIVER64FOLDER]\OemVista.inf&quot; &quot;tap0901&quot;"
+	               Before="RunDriverWin10x64Install"
+	               Sequence="execute"/>
+		<CustomAction Id="RunDriverWin10x64Install"
+	                BinaryKey="WixCA"
+	                DllEntry="WixQuietExec"
+	                Impersonate='no'
+	                Execute="deferred"
+	                Return="check"/>
 
-		<CustomAction Id="InstallDriver32"
+		<SetProperty Id="RunDriverWin10x64Uninstall"
+	               Value="&quot;[DRIVER64FOLDER]tapinstall.exe&quot; remove tap0901"
+	               Before="RunDriverWin10x64Uninstall"
+	               Sequence="execute"/>
+		<CustomAction Id="RunDriverWin10x64Uninstall"
+	                BinaryKey="WixCA"
+	                DllEntry="WixQuietExec"
+	                Impersonate='no'
+	                Execute="deferred"
+	                Return="check"/>
+
+		<SetProperty Id="RunDriver32Install"
+                 Value="&quot;[DRIVER32FOLDER]tapinstall.exe&quot; install &quot;[DRIVER32FOLDER]\AFTap.inf&quot; &quot;aftap0901&quot;"
+                 Before="RunDriver32Install"
+                 Sequence="execute"/>
+		<CustomAction Id="RunDriver32Install"
                   BinaryKey="WixCA"
-                  DllEntry="CAQuietExec"
+                  DllEntry="WixQuietExec"
+                  Impersonate='no'
                   Execute="deferred"
-                  Return="check"
-                  Impersonate="no"/>
+                  Return="check"/>
 
-		<CustomAction Id="UninstallDriver64Property"
-                  Property="UninstallDriver64"
-                  Execute="immediate"
-                  Value="&quot;[DRIVER64LOCATION]tapinstall.exe&quot; remove &quot;aftap0901&quot;" />
-
-		<CustomAction Id="UninstallDriver64"
+		<SetProperty Id="RunDriver32Uninstall"
+                 Value="&quot;[DRIVER32FOLDER]tapinstall.exe&quot; remove aftap0901"
+                 Before="RunDriver32Uninstall"
+                 Sequence="execute"/>
+		<CustomAction Id="RunDriver32Uninstall"
                   BinaryKey="WixCA"
-                  DllEntry="CAQuietExec"
+                  DllEntry="WixQuietExec"
+                  Impersonate='no'
                   Execute="deferred"
-                  Return="check"
-                  Impersonate="no"/>
+                  Return="check"/>
 
-		<CustomAction Id="UninstallDriver32Property"
-                  Property="UninstallDriver32"
-                  Execute="immediate"
-                  Value="&quot;[DRIVER32LOCATION]tapinstall.exe&quot; remove &quot;aftap0901&quot;" />
+		<SetProperty Id="RunDriverWin10x32Install"
+                 Value="&quot;[DRIVER32FOLDER]tapinstall.exe&quot; install &quot;[DRIVER32FOLDER]\OemVista.inf&quot; &quot;tap0901&quot;"
+                 Before="RunDriverWin10x32Install"
+                 Sequence="execute"/>
+		<CustomAction Id="RunDriverWin10x32Install"
+	                BinaryKey="WixCA"
+	                DllEntry="WixQuietExec"
+	                Impersonate='no'
+	                Execute="deferred"
+	                Return="check"/>
 
-		<CustomAction Id="UninstallDriver32"
-                  BinaryKey="WixCA"
-                  DllEntry="CAQuietExec"
+		<SetProperty Id="RunDriverWin10x32Uninstall"
+	               Value="&quot;[DRIVER32FOLDER]tapinstall.exe&quot; remove tap0901"
+	               Before="RunDriverWin10x32Uninstall"
+	               Sequence="execute"/>
+		<CustomAction Id="RunDriverWin10x32Uninstall"
+	                BinaryKey="WixCA"
+	                DllEntry="WixQuietExec"
+	                Impersonate='no'
+	                Execute="deferred"
+	                Return="check"/>
+
+
+		<CustomAction Id="LaunchApplication"
+                  Directory="INSTALLFOLDER"
+                  ExeCommand="[INSTALLFOLDER]Hydra.Sdk.Demo.exe"
+                  Impersonate='no'
                   Execute="deferred"
-                  Return="check"
-                  Impersonate="no"/>
+                  Return="asyncNoWait"/>
 
 		<Feature Id="ProductFeature" Title="$(var.ProductName)" Level="1">
 			<ComponentRef Id="ProductComponent" />
-			<ComponentRef Id="ApplicationComponent" />
-			<ComponentRef Id="x32DriverComponent"/>
-			<ComponentRef Id="x64DriverComponent"/>
-			<ComponentRef Id="ServiceComponent"/>
+			<ComponentRef Id="Driver32Component"/>
+			<ComponentRef Id="Driver64Component"/>
+			<ComponentRef Id="x32bitComponent"/>
+			<ComponentRef Id="x64bitComponent"/>
+			<ComponentRef Id="ApplicationStartMenuShortcutComponent"/>
+			<ComponentRef Id="ApplicationDesktopShortcutComponent"/>
 		</Feature>
 
 		<InstallExecuteSequence>
 			<Custom Action="RunServiceRegistration" After="InstallFiles">NOT Installed AND NOT REMOVE</Custom>
-			<Custom Action="InstallDriver64Property" Before="InstallDriver64">NOT Installed AND NOT REMOVE AND <![CDATA[(VersionNT64)]]></Custom>
-			<Custom Action="InstallDriver64" After="RunServiceRegistration">NOT Installed AND NOT REMOVE AND <![CDATA[(VersionNT64)]]></Custom>
-			<Custom Action="InstallDriver32Property" Before="InstallDriver32">NOT Installed AND NOT REMOVE AND <![CDATA[NOT(VersionNT64)]]></Custom>
-			<Custom Action="InstallDriver32" After="RunServiceRegistration">NOT Installed AND NOT REMOVE AND <![CDATA[NOT(VersionNT64)]]></Custom>
+			<Custom Action="RunDriver64Install" After="InstallFiles">NOT Installed AND NOT REMOVE AND <![CDATA[(VersionNT64)]]> AND <![CDATA[(VersionNT<603)]]></Custom>
+			<Custom Action="RunDriver32Install" After="InstallFiles">NOT Installed AND NOT REMOVE AND <![CDATA[NOT(VersionNT64)]]> AND <![CDATA[(VersionNT<603)]]></Custom>
+			<Custom Action="RunDriverWin10x64Install" After="InstallFiles">NOT Installed AND NOT REMOVE AND <![CDATA[(VersionNT64)]]> AND <![CDATA[(VersionNT>=603)]]></Custom>
+			<Custom Action="RunDriverWin10x32Install" After="InstallFiles">NOT Installed AND NOT REMOVE AND <![CDATA[NOT(VersionNT64)]]> AND <![CDATA[(VersionNT>=603)]]></Custom>
+			<Custom Action="LaunchApplication" Before="InstallFinalize">NOT Installed AND NOT REMOVE</Custom>
 
-			<Custom Action="RunServiceRemove" Before="RemoveFiles">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")</Custom>
-			<Custom Action="UninstallDriver64Property" Before="UninstallDriver64">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL") AND <![CDATA[(VersionNT64)]]></Custom>
-			<Custom Action="UninstallDriver64" Before="RemoveFiles">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL") AND <![CDATA[(VersionNT64)]]></Custom>
-			<Custom Action="UninstallDriver32Property" Before="UninstallDriver32">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL") AND <![CDATA[NOT(VersionNT64)]]></Custom>
-			<Custom Action="UninstallDriver32" Before="RemoveFiles">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL") AND <![CDATA[NOT(VersionNT64)]]></Custom>
+			<Custom Action="RunServiceRemove" Before="RemoveFiles">REMOVE="ALL"</Custom>
+			<Custom Action="RunDriver64Uninstall" Before="RemoveFiles">REMOVE="ALL" AND <![CDATA[(VersionNT64)]]> AND <![CDATA[(VersionNT<603)]]></Custom>
+			<Custom Action="RunDriver32Uninstall" Before="RemoveFiles">REMOVE="ALL" AND <![CDATA[NOT(VersionNT64)]]> AND <![CDATA[(VersionNT<603)]]></Custom>
+			<Custom Action="RunDriverWin10x64Uninstall" Before="RemoveFiles">REMOVE="ALL" AND <![CDATA[(VersionNT64)]]> AND <![CDATA[(VersionNT>=603)]]></Custom>
+			<Custom Action="RunDriverWin10x32Uninstall" Before="RemoveFiles">REMOVE="ALL" AND <![CDATA[NOT(VersionNT64)]]> AND <![CDATA[(VersionNT>=603)]]></Custom>
 		</InstallExecuteSequence>
-
 	</Product>
-
 </Wix>

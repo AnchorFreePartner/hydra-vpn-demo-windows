@@ -49,6 +49,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Hydra.Sdk.Common">
+      <HintPath>..\..\SDK\Hydra.Sdk.Common.dll</HintPath>
+    </Reference>
     <Reference Include="Hydra.Sdk.Windows">
       <HintPath>..\..\SDK\Hydra.Sdk.Windows.dll</HintPath>
     </Reference>

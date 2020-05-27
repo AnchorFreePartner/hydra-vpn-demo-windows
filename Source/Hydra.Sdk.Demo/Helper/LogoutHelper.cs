@@ -5,7 +5,7 @@
 namespace Hydra.Sdk.Demo.Helper
 {
     using System.Threading.Tasks;
-    using Hydra.Sdk.Windows.IoC;
+    using Hydra.Sdk.Common.IoC;
     using PartnerApi;
     using PartnerApi.Parameters;
 

@@ -5,6 +5,7 @@
 	<?define ProductCode="DEB679D7-9E85-4F0B-9EAE-F9D3FFBC4D5B"?>
 	<?define UpgradeCode="EAD89ABE-B252-4D0B-AD1F-B0E82E29A55E"?>
 	<?define Manufacturer="AnchorFree, Inc"?>
+	<?define PlatformInstallFolder="ProgramFilesFolder"?>
 	<?if $(var.Platform)=x64 ?>
 	<?define driverPath = "x64" ?>
 	<?else ?>

@@ -16,6 +16,8 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
     using System.Windows;
     using System.Windows.Input;
     using System.Windows.Threading;
+    using Hydra.Sdk.Common.IoC;
+    using Hydra.Sdk.Common.Logger;
     using Hydra.Sdk.Demo.Countries;
     using Hydra.Sdk.Demo.Helper;
     using Hydra.Sdk.Demo.Logger;
@@ -24,7 +26,6 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
     using Hydra.Sdk.Windows;
     using Hydra.Sdk.Windows.EventArgs;
     using Hydra.Sdk.Windows.IoC;
-    using Hydra.Sdk.Windows.Logger;
     using Hydra.Sdk.Windows.Misc;
     using Hydra.Sdk.Windows.Network.Rules;
     using Microsoft.Practices.ServiceLocation;
@@ -66,7 +67,7 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
         private string gitHubLogin;
         private string gitHubPassword;
         private string bypassDomains = "iplocation.net\r\n*.iplocation.net";
-        private string serviceName = "hydrasvc";
+        private string serviceName = "Hydra Sdk Demo Vpn Service";
         private string logContents;
         private bool isErrorVisible;
         private bool isConnectButtonVisible;
