@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hydra.Sdk.Demo", "Hydra.Sdk.Demo.csproj", "{AE2744A5-F0AA-4622-B4CE-DDAB8C805C71}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hydra.Sdk.Demo", "Hydra.Sdk.Demo\Hydra.Sdk.Demo.csproj", "{AE2744A5-F0AA-4622-B4CE-DDAB8C805C71}"
 EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Hydra.Sdk.Demo.Installer", "..\Hydra.Sdk.Demo.Installer\Hydra.Sdk.Demo.Installer.wixproj", "{C31127B5-447D-4FEE-9ECB-851873B1A9B1}"
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Hydra.Sdk.Demo.Installer", "Hydra.Sdk.Demo.Installer\Hydra.Sdk.Demo.Installer.wixproj", "{C31127B5-447D-4FEE-9ECB-851873B1A9B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
