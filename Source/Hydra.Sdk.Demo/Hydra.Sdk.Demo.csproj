@@ -141,6 +141,11 @@
     <Compile Include="Logger\EventLoggerListener.cs" />
     <Compile Include="Logger\LogEntryArrivedEventArgs.cs" />
     <Compile Include="Model\VpnNodeModel.cs" />
+    <Compile Include="Properties\Resources.Logs.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.Logs.resx</DependentUpon>
+    </Compile>
     <Compile Include="ViewModel\Control\MainScreenViewModel.cs" />
     <Compile Include="ViewModel\InstallingWindowViewModel.cs" />
     <Compile Include="ViewModel\RequestAuthCodeViewModel.cs" />
@@ -171,6 +176,10 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="Properties\Resources.Logs.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Logs.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

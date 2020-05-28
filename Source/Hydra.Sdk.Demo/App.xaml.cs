@@ -6,6 +6,7 @@ namespace Hydra.Sdk.Demo
 {
     using System;
     using System.Windows;
+    using Hydra.Sdk.Demo.Properties;
 
     public partial class App : Application
     {
@@ -25,12 +26,13 @@ namespace Hydra.Sdk.Demo
 
         private void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
         {
-            if (e.ExceptionObject is Exception ex)
+            if (!(e.ExceptionObject is Exception ex))
             {
-                var exceptionType = ex.GetType();
-                MessageBox.Show(ex.ToString(), "Unhandled exception", MessageBoxButton.OK, MessageBoxImage.Error);
-                Environment.Exit(1);
+                return;
             }
+
+            MessageBox.Show(ex.ToString(), Resources_Logs.UnhandledExceptionError, MessageBoxButton.OK, MessageBoxImage.Error);
+            Environment.Exit(1);
         }
     }
 }

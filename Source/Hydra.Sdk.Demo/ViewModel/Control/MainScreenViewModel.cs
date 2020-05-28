@@ -20,6 +20,7 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
     using Hydra.Sdk.Demo.Helper;
     using Hydra.Sdk.Demo.Logger;
     using Hydra.Sdk.Demo.Model;
+    using Hydra.Sdk.Demo.Properties;
     using Hydra.Sdk.Demo.View;
     using Hydra.Sdk.Windows;
     using Hydra.Sdk.Windows.Enum;
@@ -437,35 +438,35 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                         && response.Headers.Contains(githubOtpHeader))
                     {
-                        HydraLogger.Trace("Two-factor authentication enabled");
+                        HydraLogger.Trace(Resources_Logs.TwoFactorAuthenticationEnabled);
 
                         var requestAuthCode = ServiceLocator.Current.GetInstance<RequestAuthCode>();
 
                         requestAuthCode.ShowDialog();
                         if (requestAuthCode.DialogResult != true)
                         {
-                            HydraLogger.Trace("Cancel authorization!");
+                            HydraLogger.Trace(Resources_Logs.CancelAuthorization);
                             return string.Empty;
                         }
 
                         var authCode = requestAuthCode.RequestAuthCodeViewModel.AuthCode;
-                        HydraLogger.Trace("Sending authentication code...");
+                        HydraLogger.Trace(Resources_Logs.SendingAuthenticationCode);
 
                         response = await LoginGithub(login, pass, authCode).ConfigureAwait(false);
                         if (!response.IsSuccessStatusCode)
                         {
-                            HydraLogger.Trace("Two-factor authentication failed!");
+                            HydraLogger.Trace(Resources_Logs.TwoFactorAuthenticationFailedError);
                             return string.Empty;
                         }
                     }
                     else
                     {
-                        HydraLogger.Trace("Unable to get OAuth token from GitHub!");
+                        HydraLogger.Trace(Resources_Logs.UnableToGetOAuthError);
                         return string.Empty;
                     }
                 }
 
-                HydraLogger.Trace("Got valid response from GitHub");
+                HydraLogger.Trace(Resources_Logs.GettingValidResponse);
                 var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var responseJson = JObject.Parse(responseString);
 
@@ -518,7 +519,7 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
                     var content = new StringContent(JsonConvert.SerializeObject(parameters), Encoding.UTF8, "application/json");
                     message.Content = content;
 
-                    HydraLogger.Trace("Trying to get OAuth token from GitHub...");
+                    HydraLogger.Trace(Resources_Logs.GettingOAuthToken);
                     return await client.SendAsync(message).ConfigureAwait(false);
                 }
             }
@@ -569,7 +570,7 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
                     oauthToken = await GetGithubOAuthToken(this.GitHubLogin, this.GitHubPassword).ConfigureAwait(false);
                     if (string.IsNullOrWhiteSpace(oauthToken))
                     {
-                        MessageBox.Show("Could not perform GitHub authorization!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Could not perform GitHub authorization!", Resources_Logs.Error, MessageBoxButton.OK, MessageBoxImage.Error);
                         this.IsLoginButtonVisible = true;
                         return;
                     }
