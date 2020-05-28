@@ -15,10 +15,10 @@
 		<Condition Message="A later version of [ProductName] is already installed.">NOT NEWERVERSIONDETECTED</Condition>
 		<MajorUpgrade DowngradeErrorMessage="A newer version of $(var.ProductName) is already installed." AllowSameVersionUpgrades="yes" />
 
-		<!--<PropertyRef Id="NETFRAMEWORK45"/>
+		<PropertyRef Id="NETFRAMEWORK45"/>
 		<Condition Message="This application requires .NET Framework 4.5. Please install the .NET Framework then run this installer again.">
 			<![CDATA[NETFRAMEWORK45]]>
-		</Condition>-->
+		</Condition>
 
 		<MediaTemplate EmbedCab="yes"/>
 
