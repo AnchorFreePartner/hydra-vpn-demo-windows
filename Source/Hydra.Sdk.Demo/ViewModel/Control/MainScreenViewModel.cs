@@ -115,6 +115,15 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether logging enabled flag.
+        /// </summary>
+        public static bool IsLoggingEnabled
+        {
+            get => HydraLogger.IsEnabled;
+            set => HydraLogger.IsEnabled = value;
+        }
+
+        /// <summary>
         /// Gets or sets device id for backend login method.
         /// </summary>
         public string DeviceId
