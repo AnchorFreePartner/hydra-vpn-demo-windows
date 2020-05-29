@@ -102,24 +102,23 @@
 				<File Source="..\..\bin\$(var.AppPath)\Prism.Unity.Wpf.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\Prism.Wpf.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\PartnerApi.dll" Checksum="yes" />
-				<File Source="..\..\bin\$(var.AppPath)\RestSharp.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\SimpleWifi.dll" Checksum="yes" />
 				<File Source="..\..\bin\$(var.AppPath)\System.Windows.Interactivity.dll" Checksum="yes" />
 				<File Id="Newtonsoft.Json.dll_app" Source="..\..\bin\$(var.AppPath)\Newtonsoft.Json.dll" Checksum="yes" />
 
-				<File Source="..\..\Service\afvpn.manifest" Checksum="yes" />
-				<File Source="..\..\Service\afvpn.tlb" Checksum="yes" />
-				<File Source="..\..\Service\Foundation.Annotations.dll" Checksum="yes" />
-				<File Source="..\..\Service\Foundation.Common.dll" Checksum="yes" />
-				<File Source="..\..\Service\Foundation.Extensions.dll" Checksum="yes" />
-				<File Source="..\..\Service\Foundation.ExtProc.Hydra.dll" Checksum="yes" />
-				<File Source="..\..\Service\Foundation.ExtProc.Hydra.ComTypes.dll" Checksum="yes" />
-				<File Source="..\..\Service\Hydra.Sdk.Windows.Service.exe" Checksum="yes" />
-				<File Source="..\..\Service\System.Collections.Immutable.dll" Checksum="yes" />
-				<File Source="..\..\Service\System.Runtime.CompilerServices.Unsafe.dll" Checksum="yes" />
-				<File Source="..\..\Service\System.Threading.Tasks.Extensions.dll" Checksum="yes" />
-				<File Source="..\..\Service\System.ValueTuple.dll" Checksum="yes" />
-				<File Source="..\..\Service\NLog.dll" Checksum="yes" />
+				<File Source="..\..\service\afvpn.manifest" Checksum="yes" />
+				<File Source="..\..\service\afvpn.tlb" Checksum="yes" />
+				<File Source="..\..\service\Foundation.Annotations.dll" Checksum="yes" />
+				<File Source="..\..\service\Foundation.Common.dll" Checksum="yes" />
+				<File Source="..\..\service\Foundation.Extensions.dll" Checksum="yes" />
+				<File Source="..\..\service\Foundation.ExtProc.Hydra.dll" Checksum="yes" />
+				<File Source="..\..\service\Foundation.ExtProc.Hydra.ComTypes.dll" Checksum="yes" />
+				<File Source="..\..\service\Hydra.Sdk.Windows.Service.exe" Checksum="yes" />
+				<File Source="..\..\service\System.Collections.Immutable.dll" Checksum="yes" />
+				<File Source="..\..\service\System.Runtime.CompilerServices.Unsafe.dll" Checksum="yes" />
+				<File Source="..\..\service\System.Threading.Tasks.Extensions.dll" Checksum="yes" />
+				<File Source="..\..\service\System.ValueTuple.dll" Checksum="yes" />
+				<File Source="..\..\service\NLog.dll" Checksum="yes" />
 			</Component>
 		</DirectoryRef>
 
