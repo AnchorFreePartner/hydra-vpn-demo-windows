@@ -39,7 +39,9 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
     /// <summary>
     /// Main screen view model.
     /// </summary>
+#pragma warning disable CA1506
     public class MainScreenViewModel : BindableBase
+#pragma warning restore CA1506
     {
         private static readonly string MachineId = RegistryHelper.GetMachineGuid();
         private ICommand connectCommand;
@@ -510,12 +512,14 @@ namespace Hydra.Sdk.Demo.ViewModel.Control
                 client_secret = clientSecret,
             };
 
+#pragma warning disable CA1508 // Avoid dead conditional code
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("User-Agent", login);
 
                 using (var message = new HttpRequestMessage(HttpMethod.Post, apiUrl))
                 {
+#pragma warning restore CA1508 // Avoid dead conditional code
                     message.Headers.Accept.ParseAdd("application/json");
                     message.Headers.Authorization = AuthenticationHeaderValue.Parse($"Basic {authString}");
 
