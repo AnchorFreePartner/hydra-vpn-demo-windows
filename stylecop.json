@@ -1,0 +1,37 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "settings": {
+    "documentationRules": {
+      "companyName": "AnchorFree Inc.",
+      "copyrightText": "Copyright (c) {companyName} All rights reserved.",
+      "documentExposedElements": false,
+      "documentInterfaces": true,
+      "documentInternalElements": false,
+      "documentPrivateElements": false,
+      "documentPrivateFields": false,
+      "fileNamingConvention": "metadata",
+      "xmlHeader": true
+    },
+    "indentation": {
+      "useTabs": false
+    },
+    "layoutRules": {
+      "allowConsecutiveUsings": true,
+      "newlineAtEndOfFile": "omit"
+    },
+    "maintainabilityRules": {
+      "topLevelTypes": [ "class", "interface", "struct" ]
+    },
+    "namingRules": {
+      "allowCommonHungarianPrefixes": true
+    },
+    "orderingRules": {
+      "blankLinesBetweenUsingGroups": "allow",
+      "systemUsingDirectivesFirst": true,
+      "usingDirectivesPlacement": "insideNamespace"
+    },
+    "readabilityRules": {
+      "allowBuiltInTypeAliases": true
+    }
+  }
+}
